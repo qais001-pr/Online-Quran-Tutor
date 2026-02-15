@@ -1,0 +1,97 @@
+# =====================================
+# Visual Studio / IDE
+# =====================================
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.csproj.user
+
+# =====================================
+# Build output
+# =====================================
+bin/
+obj/
+Debug/
+Release/
+
+# =====================================
+# NuGet
+# =====================================
+packages/
+*.nupkg
+!packages.config
+
+# =====================================
+# Runtime database files
+# =====================================
+App_Data/*.mdf
+App_Data/*.ldf
+
+# =====================================
+# Uploaded/generated content
+# =====================================
+UploadedChildImages/
+UploadedGuardianImages/
+UploadedStudentImages/
+UploadedTutorImages/
+
+# =====================================
+# Ignore specific generated models/files
+# =====================================
+Model1.cs
+Model1.edmx.diagram
+Model1.tt
+Model1.edmx
+Model1.Context.cs
+Model1.Context.tt
+Model1.Designer.cs
+Global.asax
+Global.asax.cs
+Certificate.cs
+Child.cs
+Class.cs
+Day.cs
+Juz.cs
+Lesson.cs
+LessonPlan.cs
+Quran.cs
+Review.cs
+Slot.cs
+StudentSlot.cs
+StudentTutorRequest.cs
+Subject.cs
+Surah.cs
+TutorSlot.cs
+TutorSubject.cs
+User.cs
+
+# =====================================
+# Local config overrides
+# =====================================
+Web.Debug.config
+Web.Release.config
+
+# =====================================
+# Logs & temp
+# =====================================
+*.log
+*.tmp
+*.temp
+
+# =====================================
+# Backup/cache/database
+# =====================================
+*.bak
+*.cache
+*.db
+*.sqlite
+
+# =====================================
+# OS junk
+# =====================================
+Thumbs.db
+ehthumbs.db
+Desktop.ini

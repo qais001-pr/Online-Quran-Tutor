@@ -1,3 +1,22 @@
+-- Subject
+CREATE TABLE Subjects (
+    subjectID INT IDENTITY(1,1) PRIMARY KEY,
+    subjectName VARCHAR(200) NOT NULL
+);
+-- Days
+CREATE TABLE Days (
+    dayID INT IDENTITY(1,1) PRIMARY KEY,
+    dayName VARCHAR(20) NOT NULL
+);
+
+-- Slots
+CREATE TABLE Slots (
+    slotID INT IDENTITY(1,1) PRIMARY KEY,
+    startTime TIME NOT NULL,
+    endTime TIME NOT NULL,
+    createdAt DATETIME DEFAULT GETDATE()
+);
+
 -- User
 CREATE TABLE [Users] (
     userID INT IDENTITY(1,1) PRIMARY KEY,
@@ -30,32 +49,13 @@ foreign key (guardianID) references users(userid)
 )
 
 
--- Subject
-CREATE TABLE Subjects (
-    subjectID INT IDENTITY(1,1) PRIMARY KEY,
-    subjectName VARCHAR(200) NOT NULL
-);
--- Days
-CREATE TABLE Days (
-    dayID INT IDENTITY(1,1) PRIMARY KEY,
-    dayName VARCHAR(20) NOT NULL
-);
-
--- Slots
-CREATE TABLE Slots (
-    slotID INT IDENTITY(1,1) PRIMARY KEY,
-    startTime TIME NOT NULL,
-    endTime TIME NOT NULL,
-    createdAt DATETIME DEFAULT GETDATE()
-);
 
 -- Certificate
 CREATE TABLE Certificate (
     certificateID INT IDENTITY(1,1) PRIMARY KEY,
     title VARCHAR(200) NOT NULL,
-    issued_by_department VARCHAR(200),
-    image VARBINARY(MAX),
-    imageType VARCHAR(20),
+    issuedBy VARCHAR(200),
+    imagePath VARCHAR(MAX),
     userid INT NOT NULL,
     createdAt DATETIME DEFAULT GETDATE(),
     CONSTRAINT FK_Certificate_Tutor FOREIGN KEY (USERID) REFERENCES users(USERID)
@@ -67,7 +67,8 @@ CREATE TABLE TutorSlots (
     userid INT NOT NULL,
     slotID INT NOT NULL,
     dayID INT NOT NULL,
-    status VARCHAR(20) DEFAULT 'available',
+    status VARCHAR(20) NOT NULL DEFAULT 'available',
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
     CONSTRAINT FK_TutorSlots_Tutor FOREIGN KEY (userid) REFERENCES users(userid),
     CONSTRAINT FK_TutorSlots_Slot FOREIGN KEY (slotID) REFERENCES Slots(slotID),
     CONSTRAINT FK_TutorSlots_Day FOREIGN KEY (dayID) REFERENCES Days(dayID)
@@ -102,7 +103,6 @@ CREATE TABLE StudentTutorRequests (
     SubjectID INT NOT NULL,
     status VARCHAR(50) NOT NULL DEFAULT 'pending',
     createdAt DATETIME DEFAULT GETDATE(),
-    updatedAt DATETIME DEFAULT GETDATE(),
     Surahid int not null,
     CONSTRAINT FK_Request_Student FOREIGN KEY (StudentID) REFERENCES users(userid),
     CONSTRAINT FK_Tutor_Request FOREIGN KEY (TutorID) REFERENCES users(userid),
@@ -113,9 +113,9 @@ CREATE TABLE StudentTutorRequests (
 
 -- Surahs
 CREATE TABLE Surahs (
-    SurahsID INT IDENTITY(1,1) PRIMARY KEY,
-    SurahUrduName NVARCHAR(200) NOT NULL,
-    SurahEngName NVARCHAR(200) NOT NULL
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    surah_names NVARCHAR(200) NOT NULL,
+    Surah_Urdu_Names NVARCHAR(200) NOT NULL
 );
 
 -- Quran
@@ -124,7 +124,7 @@ CREATE TABLE Quran (
     VerseID INT NOT NULL,
     AyatText NVARCHAR(MAX) NOT NULL,
     SurahID INT NOT NULL,
-    CONSTRAINT FK_Verses_Surah FOREIGN KEY (SurahID) REFERENCES Surahs(SurahsID)
+    CONSTRAINT FK_Verses_Surah FOREIGN KEY (SurahID) REFERENCES Surahs(id)
 );
 
 -- LessonPlan
@@ -134,10 +134,14 @@ CREATE TABLE LessonPlan (
 );
 
 -- Lessons
-CREATE TABLE Lessons (
+CREATE TABLE Lesson (
     LessonsID INT IDENTITY(1,1) PRIMARY KEY,
     LessonPlanID INT NOT NULL,
     QuranID INT NOT NULL,
+    SubjectID INT NOT NULL,
+    SurahID INT NOT NULL,
+    CONSTRAINT FK_Lessons_Subject FOREIGN KEY (SubjectID) REFERENCES Subject(SubjectID),
+    CONSTRAINT FK_Lessons_SurahID FOREIGN KEY (SurahID) REFERENCES surahs(id),
     CONSTRAINT FK_Lessons_LessonPlan FOREIGN KEY (LessonPlanID) REFERENCES LessonPlan(lessonPlanID),
     CONSTRAINT FK_Lessons_Quran FOREIGN KEY (QuranID) REFERENCES Quran(ID)
 );
@@ -151,16 +155,20 @@ CREATE TABLE Classes (
     SubjectID INT NOT NULL,
     LessonPlanID INT NOT NULL,
     StudentRequestTutorID INT NOT NULL,
+    dayid int not null,
     Status VARCHAR(50) NOT NULL DEFAULT 'Scheduled',
     Corrections VARCHAR(MAX) NULL,
     ClassDate DATE NOT NULL,
+
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+
     CONSTRAINT FK_Classes_Student FOREIGN KEY (StudentID) REFERENCES users(userid),
     CONSTRAINT FK_Classes_Tutor FOREIGN KEY (TutorID) REFERENCES users(userid),
     CONSTRAINT FK_Classes_Slot FOREIGN KEY (SlotID) REFERENCES Slots(slotID),
     CONSTRAINT FK_Classes_Subject FOREIGN KEY (SubjectID) REFERENCES Subjects(subjectID),
     CONSTRAINT FK_Classes_LessonPlan FOREIGN KEY (LessonPlanID) REFERENCES LessonPlan(lessonPlanID),
-    CONSTRAINT FK_Classes_StudentRequestTutor FOREIGN KEY (StudentRequestTutorID) REFERENCES StudentTutorRequests(RequestID)
+    CONSTRAINT FK_Classes_StudentRequestTutor FOREIGN KEY (StudentRequestTutorID) REFERENCES StudentTutorRequests(RequestID),
+     constraint FK_Class_DAY FOREIGN KEY (dayid) REFERENCES Days(dayid)
 );
 
 -- Reviews

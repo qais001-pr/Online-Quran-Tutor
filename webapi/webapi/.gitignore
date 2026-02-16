@@ -48,8 +48,6 @@ Model1.edmx
 Model1.Context.cs
 Model1.Context.tt
 Model1.Designer.cs
-Global.asax
-Global.asax.cs
 Certificate.cs
 Child.cs
 Class.cs

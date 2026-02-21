@@ -39,13 +39,11 @@ namespace webapi.Controllers.Request
             }
             var newRequest = new StudentTutorRequest
             {
-                User = _context.Users.Find(data.studentId),
-                User1 = _context.Users.Find(data.tutorId),
-                Subject = _context.Subjects.Find(data.subjectId),
-                surah = _context.surahs.Find(data.surahID),
+                User = _context.Users.Where(u=>u.userID == data.studentId).FirstOrDefault(),
+                User1 = _context.Users.Where(u => u.userID == data.tutorId).FirstOrDefault(),
+                Subject = _context.Subjects.Where(u => u.subjectID== data.subjectId).FirstOrDefault(),
+                surah = _context.surahs.Where(u => u.Id == data.surahID).FirstOrDefault(),
                 status = "Pending",
-                createdAt = DateTime.Now,
-                updatedAt = DateTime.Now,
             };
 
             _context.StudentTutorRequests.Add(newRequest);

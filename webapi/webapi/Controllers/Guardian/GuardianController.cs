@@ -64,14 +64,14 @@ namespace webapi.Controllers.Guardian
                 {
                     string extension = Path.GetExtension(postedFile.FileName);
                     string fileName = postedFile.FileName.ToString();
-                    string folderPath = HttpContext.Current.Server.MapPath("~/UploadedGuardianImages/");
+                    string folderPath = HttpContext.Current.Server.MapPath("~/Images/");
 
                     if (!Directory.Exists(folderPath))
                         Directory.CreateDirectory(folderPath);
 
                     imagePath = Path.Combine(folderPath, guardian.email + fileName);
                     postedFile.SaveAs(imagePath);
-                    guardian.profile = "/UploadedGuardianImages/" + guardian.email+fileName.ToString();
+                    guardian.profile = "/Images/" + guardian.email+fileName.ToString();
                 }
 
                 _context.Users.Add(new User()
@@ -88,6 +88,7 @@ namespace webapi.Controllers.Guardian
                     profile = guardian.profile,
                 });
                 _context.SaveChanges();
+                guardian.userID = _context.Users.OrderByDescending(u => u.userID).FirstOrDefault().userID;
                 return Request.CreateResponse(HttpStatusCode.OK, new
                 {
                     success = true,

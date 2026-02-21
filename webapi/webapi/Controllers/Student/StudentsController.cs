@@ -59,14 +59,14 @@ namespace webapi.Controllers.Student
                 {
                     string extension = Path.GetExtension(postedFile.FileName);
                     string fileName = postedFile.FileName.ToString();
-                    string folderPath = HttpContext.Current.Server.MapPath("~/UploadedStudentImages/");
+                    string folderPath = HttpContext.Current.Server.MapPath("~/Images/");
 
                     if (!Directory.Exists(folderPath))
                         Directory.CreateDirectory(folderPath);
 
                     imagePath = Path.Combine(folderPath, child.email + fileName);
                     postedFile.SaveAs(imagePath);
-                    child.profile = "/UploadedStudentImages/" + child.email + fileName.ToString();
+                    child.profile = "/Images/" + child.email + fileName.ToString();
                 }
 
                 _context.Users.Add(new User()

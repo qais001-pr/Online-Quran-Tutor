@@ -33,10 +33,7 @@ App_Data/*.ldf
 # =====================================
 # Uploaded/generated content
 # =====================================
-UploadedChildImages/
-UploadedGuardianImages/
-UploadedStudentImages/
-UploadedTutorImages/
+Images/
 
 # =====================================
 # Ignore specific generated models/files

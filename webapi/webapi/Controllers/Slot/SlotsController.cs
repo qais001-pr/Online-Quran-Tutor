@@ -152,7 +152,7 @@ namespace webapi.Controllers.Slot
 
 
         [HttpPost]
-        [Route("api/slots/UpdateStatusTutorForBooked")]
+        [Route("api/slots/UpdateStatusTutorBooked")]
         public HttpResponseMessage UpdateStatusTutor(UpdateSlot data)
         {
             try
@@ -160,11 +160,28 @@ namespace webapi.Controllers.Slot
                 using (var db = new onlineQuranTutorEntities4())
                 {
                     var Student = db.TutorSlots.Where(s => s.Slot.slotID == data.SlotId && s.Day.dayID == data.DayId && s.User.userID == data.UserId).FirstOrDefault();
-                    if (Student.status == "booked")
-                    {
-                        return Request.CreateResponse(HttpStatusCode.OK, "Tutor slot already booked.");
-                    }
                     Student.status = "booked";
+                    db.SaveChanges();
+                    return Request.CreateResponse(HttpStatusCode.OK, "Tutor slot updated successfully.");
+                }
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, ex.Message);
+            }
+        }
+
+
+        [HttpPost]
+        [Route("api/slots/UpdateStatusTutorAvailable")]
+        public HttpResponseMessage UpdateStatusTutorAvailable(UpdateSlot data)
+        {
+            try
+            {
+                using (var db = new onlineQuranTutorEntities4())
+                {
+                    var Student = db.TutorSlots.Where(s => s.Slot.slotID == data.SlotId && s.Day.dayID == data.DayId && s.User.userID == data.UserId).FirstOrDefault();
+                    Student.status = "available";
                     db.SaveChanges();
                     return Request.CreateResponse(HttpStatusCode.OK, "Tutor slot updated successfully.");
                 }

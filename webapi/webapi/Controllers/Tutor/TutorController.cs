@@ -6,7 +6,6 @@ using System.Net;
 using System.Net.Http;
 using System.Web;
 using System.Web.Http;
-using webapi.Models.Student;
 using webapi.Models.Tutor;
 
 namespace webapi.Controllers.Tutor
@@ -70,14 +69,14 @@ namespace webapi.Controllers.Tutor
                 {
                     string extension = Path.GetExtension(postedFile.FileName);
                     string fileName = postedFile.FileName.ToString();
-                    string folderPath = HttpContext.Current.Server.MapPath("~/UploadedTutorImages/");
+                    string folderPath = HttpContext.Current.Server.MapPath("~/Images/");
 
                     if (!Directory.Exists(folderPath))
                         Directory.CreateDirectory(folderPath);
 
                     imagePath = Path.Combine(folderPath, tutor.email + fileName);
                     postedFile.SaveAs(imagePath);
-                    tutor.profile = "/UploadedTutorImages/" + tutor.email + fileName.ToString();
+                    tutor.profile = "/Images/" + tutor.email + fileName.ToString();
                 }
 
                 _context.Users.Add(new User()

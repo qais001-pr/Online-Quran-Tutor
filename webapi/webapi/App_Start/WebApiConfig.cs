@@ -1,4 +1,7 @@
-﻿using System.Web.Http;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web.Http;
 
 namespace webapi
 {
@@ -6,14 +9,14 @@ namespace webapi
     {
         public static void Register(HttpConfiguration config)
         {
-            var json = config.Formatters.JsonFormatter;
-            json.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
-            config.Formatters.Remove(config.Formatters.XmlFormatter);
+            // Web API configuration and services
+
+            // Web API routes
             config.MapHttpAttributeRoutes();
 
             config.Routes.MapHttpRoute(
                 name: "DefaultApi",
-                routeTemplate: "api/{controller}/{action}/{id}",
+                routeTemplate: "api/{controller}/{id}",
                 defaults: new { id = RouteParameter.Optional }
             );
         }

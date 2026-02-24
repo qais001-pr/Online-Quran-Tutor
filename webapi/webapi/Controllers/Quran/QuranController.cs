@@ -12,7 +12,7 @@ namespace webapi.Controllers.Quran
         [HttpGet]
         public HttpResponseMessage GetallJuz()
         {
-            var juz = _context.Juzs.ToList().Select(s => new { s.Juz_ID, s.Arbabic_Start_Word, s });
+            var juz = _context.Juzs.ToList().Select(s => new { s.Juz_ID, s.Arbabic_Start_Word });
             return Request.CreateResponse(HttpStatusCode.OK, juz);
 
         }

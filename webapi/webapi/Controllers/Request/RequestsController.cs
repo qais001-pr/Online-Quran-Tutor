@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
@@ -25,32 +24,37 @@ namespace webapi.Controllers.Request
                     new { success = false, message = "Invalid request data." });
             }
 
-            var existingRequest = _context.StudentTutorRequests
-                .Where(r => r.Subject.subjectID == data.subjectId
-                         && r.User.userID == data.studentId
-                         && r.User1.userID == data.tutorId
-                         && r.surah.Id == data.surahID)
-                .FirstOrDefault();
-
-            if (existingRequest != null)
+            var user = _context.Users.FirstOrDefault(u => u.email == data.email);
+            if (user == null || user.Subject == null)
             {
-                return Request.CreateResponse(HttpStatusCode.Conflict,
-                    new { success = false, message = "Request already sent to this tutor." });
+                return Request.CreateResponse(HttpStatusCode.BadRequest,
+                    new { success = false, message = "User or subject not found." });
             }
+
+            var student = _context.Users.FirstOrDefault(u => u.userID == data.studentId);
+            var tutor = _context.Users.FirstOrDefault(u => u.userID == data.tutorId);
+            var surah = _context.surahs.FirstOrDefault(s => s.Id == data.surahID);
+
+            if (student == null || tutor == null || surah == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest,
+                    new { success = false, message = "Invalid student, tutor, or surah." });
+            }
+
             var newRequest = new StudentTutorRequest
             {
-                User = _context.Users.Where(u=>u.userID == data.studentId).FirstOrDefault(),
-                User1 = _context.Users.Where(u => u.userID == data.tutorId).FirstOrDefault(),
-                Subject = _context.Subjects.Where(u => u.subjectID== data.subjectId).FirstOrDefault(),
-                surah = _context.surahs.Where(u => u.Id == data.surahID).FirstOrDefault(),
-                status = "Pending",
+                User = student,
+                User1 = tutor,
+                Subject = user.Subject,
+                surah = surah,
+                status = "Pending"
             };
 
-            _context.StudentTutorRequests.Add(newRequest);
-            _context.SaveChanges();
+            //_context.StudentTutorRequests.Add(newRequest);
+            //_context.SaveChanges();
 
             return Request.CreateResponse(HttpStatusCode.OK,
-                new { success = true, message = "Request sent successfully.", request = newRequest });
+                new { success = true, message = "Request sent successfully.", newRequest });
         }
     }
 }

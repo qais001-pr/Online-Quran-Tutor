@@ -5,8 +5,7 @@
         public int studentId { get; set; }
 
         public int tutorId { get; set; }
-
-        public int subjectId { get; set; }
+        public string email { get; set; }
         public int surahID { get; set; }
     }
 }

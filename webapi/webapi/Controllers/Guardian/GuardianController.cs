@@ -14,6 +14,7 @@ namespace webapi.Controllers.Guardian
     public interface IGuardianController
     {
         HttpResponseMessage addGuardian();
+        HttpResponseMessage getChildren(int guardianId);
     }
     public class GuardianController : ApiController, IGuardianController
     {
@@ -71,7 +72,7 @@ namespace webapi.Controllers.Guardian
 
                     imagePath = Path.Combine(folderPath, guardian.email + fileName);
                     postedFile.SaveAs(imagePath);
-                    guardian.profile = "/Images/" + guardian.email+fileName.ToString();
+                    guardian.profile = "/Images/" + guardian.email + fileName.ToString();
                 }
 
                 _context.Users.Add(new User()
@@ -105,6 +106,28 @@ namespace webapi.Controllers.Guardian
                     error = ex.Message
                 });
             }
+        }
+
+        [HttpGet]
+        public HttpResponseMessage getChildren(int guardianId)
+        {
+            var childrens = from user in _context.Users
+                            join child in _context.children on user.userID equals child.User1.userID
+                            join guardian in _context.Users on child.User.userID equals guardian.userID
+                            where user.userID == guardianId
+                            select new
+                            {
+                                child.childrenID,
+                                child.User.name,
+                                child.User.email,
+                                child.User.profile,
+                                child.User.dateOfBirth,
+                            };
+            return Request.CreateResponse(HttpStatusCode.OK, new
+            {
+                success = true,
+                data = childrens
+            });
         }
     }
 }

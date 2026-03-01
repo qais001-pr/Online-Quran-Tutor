@@ -16,6 +16,7 @@ namespace webapi.Controllers.Tutor
         HttpResponseMessage addTutor();
         HttpResponseMessage addTutorSlots(TutorSlots tutorSlot);
         HttpResponseMessage removeTutorSlots(TutorSlots tutorSlot);
+        IHttpActionResult getRequests(int tutorID);
     }
 
 
@@ -164,5 +165,71 @@ namespace webapi.Controllers.Tutor
             _context.SaveChanges();
             return Request.CreateResponse(HttpStatusCode.OK, new { message = "Slot Saved Successfully" });
         }
+
+        [HttpGet]
+        public IHttpActionResult getRequests(int tutorID)
+        {
+            if (tutorID <= 0)
+                return BadRequest("Invalid tutor ID.");
+
+            var requests = _context.StudentTutorRequests
+      .Where(r => r.User1.userID == tutorID && r.status == "pending")
+      .Select(r => new
+      {
+          r.RequestID,
+          StudentID = r.User.userID,
+          StudentName = r.User.name,
+          StudentEmail = r.User.email,
+          SubjectID = r.Subject.subjectID,
+          SubjectName = r.Subject.subjectName,
+          SurahID = r.surah.Id,
+          SurahName = r.surah.surah_Urdu_Names,
+          profileImage = r.User.profile,
+          r.status
+      })
+      .ToList();
+
+            var studentIds = requests.Select(r => r.StudentID).ToList();
+
+            var slots = _context.StudentSlots
+                .Where(s => studentIds.Contains(s.User.userID) && s.Status == "booked")
+                .ToList();
+
+            var result = requests.Select(r => new
+            {
+                r.RequestID,
+                r.StudentID,
+                r.StudentName,
+                r.StudentEmail,
+                r.SubjectID,
+                r.SubjectName,
+                r.profileImage,
+                r.SurahID,
+                r.SurahName,
+                r.status,
+
+                Schedule = slots
+                    .Where(s => s.User.userID == r.StudentID)
+                    .GroupBy(s => s.Day.dayName)
+                    .Select(g => new
+                    {
+                        DayName = g.Key,
+                        Slots = g.Select(x => new
+                        {
+                            x.Slot.slotID,
+                            x.Slot.startTime,
+                            x.Slot.endTime
+                        }).ToList()
+                    }).ToList()
+            }).ToList();
+
+            return Ok(new
+            {
+                success = true,
+                message = "Requests retrieved successfully",
+                data = result
+            });
+        }
+
     }
 }

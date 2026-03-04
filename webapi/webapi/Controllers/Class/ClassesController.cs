@@ -13,6 +13,7 @@ namespace webapi.Controllers.Classes
         HttpResponseMessage CreateClassesWeeklySimple(AcceptRequestDTO request);
         HttpResponseMessage rejectRequest(int requestID);
         HttpResponseMessage getClasses(int tutorID);
+        HttpResponseMessage getClassesByStudent(int studentID);
     }
     public class ClassesController : ApiController, IClass
     {
@@ -133,21 +134,131 @@ namespace webapi.Controllers.Classes
             var request = _context.StudentTutorRequests.FirstOrDefault(r => r.RequestID == requestID);
             request.status = "Rejected";
             _context.SaveChanges();
-            return Request.CreateResponse(HttpStatusCode.OK, new { 
+            return Request.CreateResponse(HttpStatusCode.OK, new
+            {
                 success = true,
-                message = "Request Reject Successfully" });
+                message = "Request Reject Successfully"
+            });
         }
 
         [HttpGet]
         public HttpResponseMessage getClasses(int tutorID)
         {
-            var tutor = _context.Users.FirstOrDefault(t => t.userID == tutorID);
-            var classesTutor = _context.Classes.Where(t => t.User1.userID == tutorID).FirstOrDefault();
+            var result = (from c in _context.Classes
+                          join d in _context.Days on c.Day.dayID equals d.dayID
+                          join s in _context.Slots on c.Slot.slotID equals s.slotID
+                          join sb in _context.Subjects on c.Subject.subjectID equals sb.subjectID
+                          join tutoruser in _context.Users on c.User1.userID equals tutoruser.userID
+                          join studentuser in _context.Users on c.User.userID equals studentuser.userID
+                          join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
+                          where c.User1.userID == tutorID || c.User.userID == tutorID
+                          select new
+                          {
+                              c.ClassID,
+                              studentname = studentuser.name,
+                              studentProfileImage = studentuser.profile,
+                              tutorName = tutoruser.name,
+                              sb.subjectName,
+                              d.dayName,
+                              s.startTime,
+                              s.endTime,
+                              lp.lessonName,
+                              c.ClassDate,
+                              c.Status
+                          }).ToList();
             return Request.CreateResponse(HttpStatusCode.OK, new
             {
-               success = true,
-               message = "Classes retrieved successfully",
+                success = true,
+                data = result,
+                message = "Data Collected successfully",
             });
         }
+
+        [HttpGet]
+        public HttpResponseMessage getClassesByStudent(int studentID)
+        {
+            var result = (from c in _context.Classes
+                          join d in _context.Days on c.Day.dayID equals d.dayID
+                          join s in _context.Slots on c.Slot.slotID equals s.slotID
+                          join sb in _context.Subjects on c.Subject.subjectID equals sb.subjectID
+                          join tutoruser in _context.Users on c.User1.userID equals tutoruser.userID
+                          join studentuser in _context.Users on c.User.userID equals studentuser.userID
+                          join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
+                          where c.User1.userID == studentID || c.User.userID == studentID
+                          select new
+                          {
+                              c.ClassID,
+                              studentname = studentuser.name,
+                              tutorProfileImage = tutoruser.profile,
+                              tutorName = tutoruser.name,
+                              sb.subjectName,
+                              d.dayName,
+                              s.startTime,
+                              s.endTime,
+                              lp.lessonName,
+                              c.ClassDate,
+                              c.Status
+                          }).ToList();
+            return Request.CreateResponse(HttpStatusCode.OK, new
+            {
+                success = true,
+                data = result,
+                message = "Data Collected successfully",
+            });
+        }
+
+
+        [HttpGet]
+        public HttpResponseMessage getLessons(int ClassID)
+        {
+            var lessonPlanID = _context.Classes
+                .Where(c => c.ClassID == ClassID)
+                .Select(c => c.LessonPlan.lessonPlanID)
+                .FirstOrDefault();
+
+            if (lessonPlanID == 0)
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound, new
+                {
+                    success = false,
+                    message = "Lesson plan not found"
+                });
+            }
+
+            // Step 1: Get lessons + surah info first
+            var lessons = _context.Lessons
+                .Where(l => l.LessonPlan.lessonPlanID == lessonPlanID)
+                .Select(l => new
+                {
+                    lessonPlanID = l.LessonPlan.lessonPlanID,
+                    lessonName = l.LessonPlan.lessonName,
+                    surahId = l.surah.Id,
+                    surahName = l.surah.surah_names
+                }).Distinct()
+                .ToList();
+
+            var result = lessons.Select(l => new
+            {
+                l.lessonPlanID,
+                l.lessonName,
+                l.surahName,
+                ayats = _context.Qurans
+                    .Where(q => q.surah.Id == l.surahId)
+                    .Select(q => new
+                    {
+                        ayatId = q.ID,
+                        ayat = q.AyahText
+                    }).Distinct()
+                    .ToList()
+            }).Distinct().ToList();
+
+            return Request.CreateResponse(HttpStatusCode.OK, new
+            {
+                success = true,
+                data = result,
+                message = "Data Collected successfully"
+            });
+        }
+
     }
 }

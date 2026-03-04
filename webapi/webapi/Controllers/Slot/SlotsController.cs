@@ -15,7 +15,6 @@ namespace webapi.Controllers.Slot
         HttpResponseMessage UpdateStatusStudentsBooked(UpdateSlot data);
         HttpResponseMessage UpdateStatusStudentsAvailable(UpdateSlot data);
         HttpResponseMessage UpdateStatusTutor(UpdateSlot data);
-        HttpResponseMessage getAvailableTutor(int userid);
     }
     public class SlotsController : ApiController, ISlotsController
     {
@@ -160,7 +159,14 @@ namespace webapi.Controllers.Slot
                 using (var db = new onlineQuranTutorEntities4())
                 {
                     var Student = db.TutorSlots.Where(s => s.Slot.slotID == data.SlotId && s.Day.dayID == data.DayId && s.User.userID == data.UserId).FirstOrDefault();
+                    if (Student.status == "available")
+                    {
                     Student.status = "booked";
+                    }
+                    else
+                    {
+                        Student.status = "available";
+                    }
                     db.SaveChanges();
                     return Request.CreateResponse(HttpStatusCode.OK, "Tutor slot updated successfully.");
                 }
@@ -190,67 +196,6 @@ namespace webapi.Controllers.Slot
             {
                 return Request.CreateResponse(HttpStatusCode.InternalServerError, ex.Message);
             }
-        }
-
-
-
-        [HttpGet]
-        [Route("api/Slots/availabletutor")]
-        public HttpResponseMessage getAvailableTutor(int userid)
-        {
-            // Get total number of booked slots for the student
-            var studentSlotCount = db.StudentSlots
-                .Count(ss => ss.User.userID == userid && ss.Status == "booked");
-
-            // Get tutors who match all student's slots
-            var tutors = (
-                from ts in db.TutorSlots
-                join ss in db.StudentSlots
-                    on new { ts.Slot.slotID, ts.Day.dayID }
-                    equals new { ss.Slot.slotID, ss.Day.dayID }
-                join u in db.Users
-                    on ts.User.userID equals u.userID
-                where ss.User.userID == userid
-                      && ts.classStatus == "pending"
-                      && ss.Status == "booked"
-                      && ts.status == "booked"
-                group u by new
-                {
-                    u.userID,
-                    u.name,
-                    u.email,
-                    u.profile,
-                    u.about,
-                    u.city,
-                    u.country
-                } into g
-                // Only take tutors who match all student slots
-                let matchedSlotCount = g.Count()
-                where matchedSlotCount == studentSlotCount
-                select g.Key
-            ).ToList();
-
-            // Project tutors with their subjects
-            var res = tutors.Select(u => new
-            {
-                u.userID,
-                u.name,
-                u.email,
-                u.profile,
-                u.about,
-                u.city,
-                u.country,
-
-                subjects = db.TutorSubjects
-                    .Where(s => s.User.userID == u.userID)
-                    .Select(s => new
-                    {
-                        s.Subject.subjectID,
-                        s.Subject.subjectName
-                    }).ToList(),
-            }).ToList();
-
-            return Request.CreateResponse(HttpStatusCode.OK, res);
         }
 
     }

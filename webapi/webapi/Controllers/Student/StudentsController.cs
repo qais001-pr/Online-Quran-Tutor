@@ -152,14 +152,15 @@ namespace webapi.Controllers.Student
                     new { success = false, message = "Invalid student ID." });
             }
 
+            // Get student info (subject + gender preference)
             var student = _context.Users
-                        .Where(u => u.userID == studentID)
-                        .Select(s => new
-                        {
-                            subjectID = s.Subject.subjectID,
-                            preferredGender = s.preferred_tutor
-                        })
-                        .FirstOrDefault();
+                .Where(u => u.userID == studentID)
+                .Select(s => new
+                {
+                    subjectID = s.Subject.subjectID,
+                    preferredGender = s.preferred_tutor
+                })
+                .FirstOrDefault();
 
             if (student == null)
             {
@@ -169,32 +170,76 @@ namespace webapi.Controllers.Student
 
             var genderPref = (student.preferredGender ?? "").Trim().ToLower();
 
-            var availableTutors = (from ts in _context.TutorSlots
-                                   join tSub in _context.TutorSubjects on ts.User.userID equals tSub.User.userID
-                                   join u in _context.Users on ts.User.userID equals u.userID
-                                   where
-                                       tSub.Subject.subjectID == student.subjectID
-                                       &&
-                                       (
-                                           genderPref == "male" ? u.gender.ToLower() == "male" :
-                                           genderPref == "female" ? u.gender.ToLower() == "female" :
-                                           true
-                                       )
-                                   select new
-                                   {
-                                       TutorID = u.userID,
-                                       TutorName = u.name,
-                                       TutorGender = u.gender
-                                   })
-                                   .Distinct()
-                                   .ToList();
+            // Total booked slots of student
+            var studentSlotCount = _context.StudentSlots
+                .Count(ss => ss.User.userID == studentID && ss.Status == "booked");
 
-            return Request.CreateResponse(HttpStatusCode.OK, new
+            // Tutors matching ALL slots + subject + gender
+            var tutors = (
+                from ts in _context.TutorSlots
+                join ss in  _context.StudentSlots
+                    on new { ts.Slot.slotID, ts.Day.dayID }
+                    equals new { ss.Slot.slotID, ss.Day.dayID }
+                join u in _context.Users
+                    on ts.User.userID equals u.userID
+                where ss.User.userID == studentID
+                      && ts.classStatus == "available"
+                      && ss.Status == "booked"
+                      && ts.status == "booked"
+
+                      // ✅ Gender filter
+                      && (
+                            genderPref == "male" ? u.gender.ToLower() == "male" :
+                            genderPref == "female" ? u.gender.ToLower() == "female" :
+                            true
+                         )
+
+                      // ✅ Subject filter
+                      && _context.TutorSubjects.Any(tsub =>
+                             tsub.User.userID == u.userID &&
+                             tsub.Subject.subjectID == student.subjectID
+                         )
+
+                group u by new
+                {
+                    u.userID,
+                    u.name,
+                    u.email,
+                    u.profile,
+                    u.about,
+                    u.city,
+                    u.country
+                } into g
+
+                let matchedSlotCount = g.Count()
+
+                // ✅ Must match ALL booked slots
+                where matchedSlotCount == studentSlotCount
+
+                select g.Key
+            ).ToList();
+
+            var res = tutors.Select(u => new
             {
-                success = true,
-                total = availableTutors.Count,
-                tutors = availableTutors
-            });
+                u.userID,
+                u.name,
+                u.email,
+                u.profile,
+                u.about,
+                u.city,
+                u.country,
+
+                subjects = _context.TutorSubjects
+                    .Where(s => s.User.userID == u.userID)
+                    .Select(s => new
+                    {
+                        s.Subject.subjectID,
+                        s.Subject.subjectName
+                    }).ToList(),
+            }).ToList();
+
+            return Request.CreateResponse(HttpStatusCode.OK, res);
+
         }
 
 

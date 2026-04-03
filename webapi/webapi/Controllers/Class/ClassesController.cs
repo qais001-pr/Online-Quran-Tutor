@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Web.Http;
 using webapi.Models.Class;
 namespace webapi.Controllers.Classes
@@ -22,7 +23,7 @@ namespace webapi.Controllers.Classes
         {
             DateTime today = DateTime.Today;
             int daysUntil = ((int)day - (int)today.DayOfWeek + 7) % 7;
-            if (daysUntil == 0) daysUntil = 7;
+            //if (daysUntil == 0) daysUntil = 7;
             return today.AddDays(daysUntil);
         }
         [HttpPost]
@@ -30,10 +31,16 @@ namespace webapi.Controllers.Classes
         {
             try
             {
+                // Fetch necessary data
                 var student = _context.Users.FirstOrDefault(s => s.userID == request.studentID);
                 var tutor = _context.Users.FirstOrDefault(t => t.userID == request.tutorID);
                 var subject = _context.Subjects.FirstOrDefault(s => s.subjectID == request.subjectID);
                 var studentRequest = _context.StudentTutorRequests.FirstOrDefault(r => r.RequestID == request.requestID);
+
+                if (student == null || tutor == null || subject == null || studentRequest == null)
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "Invalid student, tutor, subject, or request." });
+
+                // Fetch lesson plans for the given Surah and subject
                 var lessonPlans = _context.Lessons
                     .Where(l => l.surah.Id == request.surahID && l.Subject.subjectID == request.subjectID)
                     .Select(l => l.LessonPlan)
@@ -42,62 +49,81 @@ namespace webapi.Controllers.Classes
                     .ToList();
 
                 if (!lessonPlans.Any())
-                {
-                    return Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "No lesson plans found for this Surah" });
-                }
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "No lesson plans found for this Surah." });
 
-                var matchingSlots = (
+                // Fetch student-selected slots that are available for the tutor
+                var studentSelectedSlots = (
                     from ts in _context.TutorSlots
                     join ss in _context.StudentSlots
-                    on new { ts.Slot.slotID, ts.Day.dayID } equals new { ss.Slot.slotID, ss.Day.dayID }
+                        on new { ts.Slot.slotID, ts.Day.dayID } equals new { ss.Slot.slotID, ss.Day.dayID }
                     where ts.User.userID == request.tutorID
                           && ss.User.userID == request.studentID
-                          && ts.status == "available"
+                          && ts.classStatus == "available"
+                          && ts.status == "booked"
+                          && ss.Status == "booked"
                     select ts
-                ).ToList();
+                ).OrderBy(s => s.Slot.slotID).ToList();
 
-                if (!matchingSlots.Any())
+                if (!studentSelectedSlots.Any())
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "No matching slots available." });
+
+                // Track weekly repetition per Slot+Day
+                var slotWeekCounters = studentSelectedSlots
+                    .GroupBy(s => new { s.Slot.slotID, s.Day.dayID })
+                    .ToDictionary(g => $"{g.Key.slotID}_{g.Key.dayID}", g => 0);
+
+                int lessonIndex = 0;
+
+                // Helper to get the next date for a specific DayOfWeek
+                DateTime GetNextDateForSlotDay(DayOfWeek day)
                 {
-                    return Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "No matching slots available" });
-                }
-                var slotStartDates = new List<DateTime>();
-                foreach (var slot in matchingSlots)
-                {
-                    if (!Enum.TryParse(slot.Day.dayName, true, out DayOfWeek dayOfWeek))
-                    {
-                        return Request.CreateResponse(HttpStatusCode.BadRequest,
-                            new { message = $"Invalid day name: {slot.Day.dayName}" });
-                    }
-
-                    slotStartDates.Add(GetNextDateForDay(dayOfWeek));
+                    DateTime today = DateTime.Today;
+                    int daysUntil = ((int)day - (int)today.DayOfWeek + 7) % 7;
+                    return today.AddDays(daysUntil);
                 }
 
-                var slotWeekCounters = Enumerable.Repeat(0, matchingSlots.Count).ToList();
-                int slotIndex = 0;
+                // Schedule each lesson plan
                 foreach (var lessonPlan in lessonPlans)
                 {
-                    int currentSlotIndex = slotIndex % matchingSlots.Count;
-                    var slot = matchingSlots[currentSlotIndex];
-                    DateTime classDate = slotStartDates[currentSlotIndex].AddDays(slotWeekCounters[currentSlotIndex] * 7).Date;
-                    string Day = classDate.DayOfWeek.ToString();
+                    var slot = studentSelectedSlots[lessonIndex % studentSelectedSlots.Count];
+
+                    if (!Enum.TryParse(slot.Day.dayName, true, out DayOfWeek slotDayOfWeek))
+                        return Request.CreateResponse(HttpStatusCode.BadRequest, new { message = $"Invalid day name: {slot.Day.dayName}" });
+
+                    // Composite key for this slot + day
+                    var key = $"{slot.Slot.slotID}_{slot.Day.dayID}";
+                    var tutorSlotForThisDay = _context.TutorSlots
+       .FirstOrDefault(ts =>
+           ts.User.userID == request.tutorID &&
+           ts.Day.dayID == slot.Day.dayID &&
+           ts.Slot.slotID == slot.Slot.slotID);
+
+                    if (tutorSlotForThisDay != null)
+                    {
+                        tutorSlotForThisDay.classStatus = "Booked";
+                    }
+                    // Calculate the class date (weekly repetition)
+                    DateTime classDate = GetNextDateForSlotDay(slotDayOfWeek)
+                        .AddDays(slotWeekCounters[key] * 7);
+
+                    // Conflict check for this exact slot
                     bool conflictExists = _context.Classes.Any(c =>
                         c.ClassDate == classDate &&
                         c.Slot.slotID == slot.Slot.slotID &&
-                        (c.User1.userID == tutor.userID || c.User.userID == student.userID)
+                        (c.User1.userID == request.tutorID || c.User.userID == request.studentID)
                     );
 
                     if (conflictExists)
-                    {
-                        return Request.CreateResponse(HttpStatusCode.Conflict,
-                            new { message = $"Scheduling conflict on {classDate:dd-MMM-yyyy}" });
-                    }
-                    Class clas = new Class
+                        return Request.CreateResponse(HttpStatusCode.Conflict, new { message = $"Scheduling conflict on {classDate:dd-MMM-yyyy}" });
+
+                    // Create the class
+                    var clas = new Class
                     {
                         User = student,
                         User1 = tutor,
                         Subject = subject,
                         Slot = slot.Slot,
-                        Day = _context.Days.Where(d => d.dayName == Day).FirstOrDefault(),
+                        Day = slot.Day,
                         LessonPlan = lessonPlan,
                         StudentTutorRequest = studentRequest,
                         Status = "pending",
@@ -107,27 +133,55 @@ namespace webapi.Controllers.Classes
                     };
 
                     _context.Classes.Add(clas);
-                    slotWeekCounters[currentSlotIndex]++;
-                    slotIndex++;
-                }
-                studentRequest.status = "Accepted";
-                var tutorSlotIds = (from ts in _context.TutorSlots where ts.User.userID == tutor.userID select new { ts.classStatus }).ToList();
 
+                    // Increment weekly counter for this slot + day
+                    slotWeekCounters[key]++;
+
+                    lessonIndex++;
+                }
+
+                // Update student request status
+                studentRequest.status = "Accepted";
+
+                // Reject other requests with same tutor + Surah
+                var otherRequests = (
+                    from ts in _context.TutorSlots
+                    join ss in _context.StudentSlots
+                        on new { ts.Slot.slotID, ts.Day.dayID } equals new { ss.Slot.slotID, ss.Day.dayID }
+                    join stR in _context.StudentTutorRequests
+                        on ts.User.userID equals stR.User1.userID
+                    where stR.User.userID != request.studentID
+                          && ts.User.userID == request.tutorID
+                          && stR.User.userID != ss.User.userID
+                          && stR.surah.Id == request.surahID
+                    select stR
+                ).Distinct().ToList();
+
+                foreach (var item in otherRequests)
+                    item.status = "Rejected";
+
+                // Mark tutor slots as booked for these student-selected slots
+                //foreach (var ts in studentSelectedSlots)
+                //    ts.classStatus = "Booked";
+
+                // Save all changes
                 _context.SaveChanges();
 
                 return Request.CreateResponse(HttpStatusCode.OK, new
                 {
                     success = true,
-                    message = "Classes created successfully",
+                    message = "Classes created successfully"
                 });
             }
             catch (Exception ex)
             {
-                return Request.CreateResponse(HttpStatusCode.InternalServerError,
-                    new { message = "Something went wrong", error = ex.Message });
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, new
+                {
+                    message = "Something went wrong",
+                    error = ex.Message
+                });
             }
         }
-
         [HttpPost]
         public HttpResponseMessage rejectRequest(int requestID)
         {

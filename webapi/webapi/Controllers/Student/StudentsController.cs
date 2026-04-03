@@ -13,8 +13,8 @@ namespace webapi.Controllers.Student
     public interface IStudentsController
     {
         HttpResponseMessage addStudent();
-        HttpResponseMessage addStudentSlots(StudentSlots studentSlot);
-        HttpResponseMessage removeStudentSlots(StudentSlots studentSlot);
+        //HttpResponseMessage addStudentSlots(StudentSlots studentSlot);
+        //HttpResponseMessage removeStudentSlots(StudentSlots studentSlot);
         HttpResponseMessage getAvailableTutorByStudentID(int studentID);
 
         HttpResponseMessage getTutorData(int userID);
@@ -85,7 +85,7 @@ namespace webapi.Controllers.Student
                     Subject = _context.Subjects.Where(s => s.subjectName == child.subject).FirstOrDefault(),
                 });
                 _context.SaveChanges();
-                child.userid = _context.Users.OrderByDescending(u => u.userID).FirstOrDefault().userID;
+                child.userID = _context.Users.OrderByDescending(u => u.userID).FirstOrDefault().userID;
                 return Request.CreateResponse(HttpStatusCode.OK, new
                 {
                     success = true,
@@ -105,42 +105,42 @@ namespace webapi.Controllers.Student
         }
 
 
-        [HttpPost]
-        public HttpResponseMessage addStudentSlots(StudentSlots studentSlot)
-        {
-            if (studentSlot == null)
-            {
-                return Request.CreateResponse();
-            }
-            _context.StudentSlots.Add(new StudentSlot()
-            {
-                Day = _context.Days.Where(d => d.dayID == studentSlot.dayid).FirstOrDefault(),
-                Slot = _context.Slots.Where(s => s.slotID == studentSlot.slotid).FirstOrDefault(),
-                User = _context.Users.Where(u => u.userID == studentSlot.studentid).FirstOrDefault(),
-            });
-            _context.SaveChanges();
-            return Request.CreateResponse(HttpStatusCode.OK, new { message = "Slot Saved Successfully" });
-        }
+        //[HttpPost]
+        //public HttpResponseMessage addStudentSlots(StudentSlots studentSlot)
+        //{
+        //    if (studentSlot == null)
+        //    {
+        //        return Request.CreateResponse();
+        //    }
+        //    _context.StudentSlots.Add(new StudentSlot()
+        //    {
+        //        Day = _context.Days.Where(d => d.dayID == studentSlot.dayid).FirstOrDefault(),
+        //        Slot = _context.Slots.Where(s => s.slotID == studentSlot.slotid).FirstOrDefault(),
+        //        User = _context.Users.Where(u => u.userID == studentSlot.studentid).FirstOrDefault(),
+        //    });
+        //    _context.SaveChanges();
+        //    return Request.CreateResponse(HttpStatusCode.OK, new { message = "Slot Saved Successfully" });
+        //}
 
 
-        [HttpPost]
-        public HttpResponseMessage removeStudentSlots(StudentSlots studentSlot)
-        {
-            if (studentSlot == null)
-            {
-                return Request.CreateResponse(HttpStatusCode.BadRequest);
-            }
-            var StudentSlots = _context.StudentSlots.Where(s => s.Slot.slotID == studentSlot.slotid && s.Day.dayID == studentSlot.dayid &&
-            s.User.userID == studentSlot.studentid).FirstOrDefault();
-            if (StudentSlots == null)
-            {
-                return Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "Invalid Request" });
-            }
+        //[HttpPost]
+        //public HttpResponseMessage removeStudentSlots(StudentSlots studentSlot)
+        //{
+        //    if (studentSlot == null)
+        //    {
+        //        return Request.CreateResponse(HttpStatusCode.BadRequest);
+        //    }
+        //    var StudentSlots = _context.StudentSlots.Where(s => s.Slot.slotID == studentSlot.slotid && s.Day.dayID == studentSlot.dayid &&
+        //    s.User.userID == studentSlot.studentid).FirstOrDefault();
+        //    if (StudentSlots == null)
+        //    {
+        //        return Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "Invalid Request" });
+        //    }
 
-            _context.StudentSlots.Remove(StudentSlots);
-            _context.SaveChanges();
-            return Request.CreateResponse(HttpStatusCode.OK, new { message = "Slot Saved Successfully" });
-        }
+        //    _context.StudentSlots.Remove(StudentSlots);
+        //    _context.SaveChanges();
+        //    return Request.CreateResponse(HttpStatusCode.OK, new { message = "Slot Saved Successfully" });
+        //}
 
 
         [HttpGet]
@@ -211,10 +211,10 @@ namespace webapi.Controllers.Student
                     u.country
                 } into g
 
-                let matchedSlotCount = g.Count()
+                //let matchedSlotCount = g.Count()
 
                 // ✅ Must match ALL booked slots
-                where matchedSlotCount == studentSlotCount
+                //where matchedSlotCount == studentSlotCount
 
                 select g.Key
             ).ToList();

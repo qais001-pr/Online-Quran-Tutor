@@ -52,5 +52,11 @@ namespace webapi.Controllers.Quran
                           }).ToList();
             return Request.CreateResponse(HttpStatusCode.OK,result);
         }
+        [HttpGet]
+        public HttpResponseMessage getQuranAyats()
+        {
+            var result = _context.Qurans.ToList().Select(s => new { s.ID, s.AyahText });
+            return Request.CreateResponse(HttpStatusCode.OK,result);
+        }
     }
 }

@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.InteropServices;
 using System.Web.Http;
 using webapi.Models.Class;
 namespace webapi.Controllers.Classes
@@ -15,6 +13,7 @@ namespace webapi.Controllers.Classes
         HttpResponseMessage rejectRequest(int requestID);
         HttpResponseMessage getClasses(int tutorID);
         HttpResponseMessage getClassesByStudent(int studentID);
+        HttpResponseMessage getLessons(int ClassID);
     }
     public class ClassesController : ApiController, IClass
     {
@@ -79,7 +78,7 @@ namespace webapi.Controllers.Classes
                 {
                     DateTime today = DateTime.Today;
                     int daysUntil = ((int)day - (int)today.DayOfWeek + 7) % 7;
-                    return today.AddDays(daysUntil);
+                    return today.AddDays(daysUntil + 7);
                 }
 
                 // Schedule each lesson plan
@@ -129,6 +128,7 @@ namespace webapi.Controllers.Classes
                         Status = "pending",
                         Corrections = "0",
                         ClassDate = classDate,
+                        Surahid = request.surahID,
                         CreatedAt = DateTime.Now
                     };
 
@@ -238,7 +238,7 @@ namespace webapi.Controllers.Classes
                           join tutoruser in _context.Users on c.User1.userID equals tutoruser.userID
                           join studentuser in _context.Users on c.User.userID equals studentuser.userID
                           join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
-                          where c.User1.userID == studentID || c.User.userID == studentID
+                          where c.User1.userID == studentID || c.User.userID == studentID && c.Status.ToLower() == "pending"
                           select new
                           {
                               c.ClassID,
@@ -261,6 +261,37 @@ namespace webapi.Controllers.Classes
             });
         }
 
+
+        [HttpGet]
+        public HttpResponseMessage getClassDataByUsingClassID(int ClassID)
+        {
+            var lessonPlanID = _context.Classes
+                .Where(c => c.ClassID == ClassID)
+                .Select(c => c.LessonPlan.lessonPlanID)
+                .FirstOrDefault();
+            var lesson = (from lp in _context.LessonPlans
+                          join l in _context.Lessons on lp.lessonPlanID equals l.LessonPlan.lessonPlanID
+                          join q in _context.Qurans on l.Quran.ID equals q.ID
+                          where lp.lessonPlanID == lessonPlanID
+                          select new { q.ID, q.AyahText }).ToList();
+            var surahData = (from c in _context.Classes
+                             join s in _context.surahs on c.Surahid equals s.Id
+                             where c.ClassID == ClassID
+                             select new { surahId = c.Surahid, surahName = s.surah_Urdu_Names, surahEnglishName = s.surah_names }).FirstOrDefault();
+            var lessonName = (from lp in _context.LessonPlans
+                              join l in _context.Lessons on lp.lessonPlanID equals l.LessonPlan.lessonPlanID
+                              join q in _context.Qurans on l.Quran.ID equals q.ID
+                              where lp.lessonPlanID == lessonPlanID
+                              select l.LessonPlan.lessonName).FirstOrDefault();
+
+            var result = new
+            {
+                lessonName = lessonName,
+                surahData = surahData,
+                lessondata = lesson
+            };
+            return Request.CreateResponse(HttpStatusCode.OK, result);
+        }
 
         [HttpGet]
         public HttpResponseMessage getLessons(int ClassID)

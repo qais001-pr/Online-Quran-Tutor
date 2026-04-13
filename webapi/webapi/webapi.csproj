@@ -128,6 +128,7 @@
     <Compile Include="Controllers\Child\ChildrenController.cs" />
     <Compile Include="Controllers\Class\ClassesController.cs" />
     <Compile Include="Controllers\Dashboard\DashboardController.cs" />
+    <Compile Include="Controllers\Dashboard\StudentDashboardController.cs" />
     <Compile Include="Controllers\Guardian\GuardianController.cs" />
     <Compile Include="Controllers\Profile\ProfileController.cs" />
     <Compile Include="Controllers\Quran\QuranController.cs" />

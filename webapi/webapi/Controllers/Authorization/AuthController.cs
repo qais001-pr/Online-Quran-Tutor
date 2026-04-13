@@ -38,6 +38,7 @@ namespace webapi.Controllers.Authorization
                     u.email,
                     u.userType,
                     u.dateOfBirth,
+                    u.timezone,
                     u.country,
                     u.city,
                     u.about,

@@ -241,38 +241,69 @@ namespace webapi.Controllers.Student
             return Request.CreateResponse(HttpStatusCode.OK, res);
 
         }
-
-
-        public HttpResponseMessage getTutorData(int userID)
+        [HttpGet]
+        public HttpResponseMessage GetTutorData(int userID)
         {
             if (userID <= 0)
             {
-                return Request.CreateResponse(HttpStatusCode.BadRequest,
-                    new { success = false, message = "Invalid user ID." });
+                return Request.CreateResponse(HttpStatusCode.BadRequest, new
+                {
+                    success = false,
+                    message = "Invalid user ID."
+                });
             }
+
             var tutorData = _context.Users
-                            .Where(u => u.userID == userID)
-                            .Select(t => new
-                            {
-                                t.userID,
-                                t.name,
-                                t.gender,
-                                t.dateOfBirth,
-                                t.country,
-                                t.city,
-                                t.timezone,
-                                t.profile,
-                                t.about,
-                                Subjects = t.TutorSubjects.Select(ts => new
-                                {
-                                    ts.Subject.subjectID,
-                                    ts.Subject.subjectName
-                                }).ToList()
-                            }).ToList();
+                .Where(u => u.userID == userID)
+                .Select(t => new
+                {
+                    t.userID,
+                    t.name,
+                    t.gender,
+                    t.dateOfBirth,
+                    t.country,
+                    t.city,
+                    t.timezone,
+                    t.profile,
+                    t.about,
+                    TutorSubjects = t.TutorSubjects   // 👈 DON'T project here yet
+                })
+                .FirstOrDefault();
+
+            if (tutorData == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound, new
+                {
+                    success = false,
+                    message = "Tutor not found."
+                });
+            }
+
+            // ✅ Now convert in memory (SAFE)
+            var result = new
+            {
+                tutorData.userID,
+                tutorData.name,
+                tutorData.gender,
+                tutorData.dateOfBirth,
+                tutorData.country,
+                tutorData.city,
+                tutorData.timezone,
+                tutorData.profile,
+                tutorData.about,
+                Subjects = tutorData.TutorSubjects
+                    .Select(ts => new
+                    {
+                        ts.Subject.subjectID,
+                        ts.Subject.subjectName
+                    })
+                    .ToList()
+            };
+
             return Request.CreateResponse(HttpStatusCode.OK, new
             {
                 success = true,
-                tutor = tutorData.FirstOrDefault()
+                tutor = result
             });
         }
     }

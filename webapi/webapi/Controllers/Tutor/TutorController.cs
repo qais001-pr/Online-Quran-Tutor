@@ -104,7 +104,7 @@ namespace webapi.Controllers.Tutor
                     });
                 }
                 _context.SaveChanges();
-                tutor.userid = _context.Users.Where(u => u.email.ToLower() == tutor.email.ToLower()).FirstOrDefault().userID;
+                tutor.userID = _context.Users.Where(u => u.email.ToLower() == tutor.email.ToLower()).FirstOrDefault().userID;
                 return Request.CreateResponse(HttpStatusCode.OK, new
                 {
                     success = true,

@@ -30,16 +30,19 @@ namespace webapi.Controllers.Classes
         {
             try
             {
-                // Fetch necessary data
+                // Fetch required data
                 var student = _context.Users.FirstOrDefault(s => s.userID == request.studentID);
                 var tutor = _context.Users.FirstOrDefault(t => t.userID == request.tutorID);
                 var subject = _context.Subjects.FirstOrDefault(s => s.subjectID == request.subjectID);
                 var studentRequest = _context.StudentTutorRequests.FirstOrDefault(r => r.RequestID == request.requestID);
 
                 if (student == null || tutor == null || subject == null || studentRequest == null)
-                    return Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "Invalid student, tutor, subject, or request." });
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, new
+                    {
+                        message = "Invalid student, tutor, subject, or request."
+                    });
 
-                // Fetch lesson plans for the given Surah and subject
+                // Lesson Plans
                 var lessonPlans = _context.Lessons
                     .Where(l => l.surah.Id == request.surahID && l.Subject.subjectID == request.subjectID)
                     .Select(l => l.LessonPlan)
@@ -48,64 +51,68 @@ namespace webapi.Controllers.Classes
                     .ToList();
 
                 if (!lessonPlans.Any())
-                    return Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "No lesson plans found for this Surah." });
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, new
+                    {
+                        message = "No lesson plans found."
+                    });
 
-                // Fetch student-selected slots that are available for the tutor
+                // Matching Slots
                 var studentSelectedSlots = (
                     from ts in _context.TutorSlots
                     join ss in _context.StudentSlots
                         on new { ts.Slot.slotID, ts.Day.dayID } equals new { ss.Slot.slotID, ss.Day.dayID }
                     where ts.User.userID == request.tutorID
                           && ss.User.userID == request.studentID
-                          && ts.classStatus == "available"
+                          && ts.classStatus == "pending"
                           && ts.status == "booked"
                           && ss.Status == "booked"
                     select ts
-                ).OrderBy(s => s.Slot.slotID).ToList();
+                ).ToList();
 
                 if (!studentSelectedSlots.Any())
-                    return Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "No matching slots available." });
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, new
+                    {
+                        message = "No matching slots available."
+                    });
 
-                // Track weekly repetition per Slot+Day
-                var slotWeekCounters = studentSelectedSlots
-                    .GroupBy(s => new { s.Slot.slotID, s.Day.dayID })
-                    .ToDictionary(g => $"{g.Key.slotID}_{g.Key.dayID}", g => 0);
-
-                int lessonIndex = 0;
-
-                // Helper to get the next date for a specific DayOfWeek
-                DateTime GetNextDateForSlotDay(DayOfWeek day)
+                // Helper: Next valid date
+                DateTime GetNextDate(DayOfWeek day)
                 {
                     DateTime today = DateTime.Today;
                     int daysUntil = ((int)day - (int)today.DayOfWeek + 7) % 7;
-                    return today.AddDays(daysUntil + 7);
+                    return today.AddDays(daysUntil == 0 ? 0 : daysUntil);
                 }
 
-                // Schedule each lesson plan
+                // STEP 1: Group slots by DAY (important)
+                var slotsByDay = studentSelectedSlots
+                    .GroupBy(s => s.Day.dayName)
+                    .OrderBy(g => Enum.Parse(typeof(DayOfWeek), g.Key))
+                    .ToList();
+
+                // STEP 2: Track next date per DAY
+                var dayNextDates = slotsByDay.ToDictionary(
+                    g => g.Key,
+                    g =>
+                    {
+                        Enum.TryParse(g.Key, true, out DayOfWeek d);
+                        return GetNextDate(d);
+                    }
+                );
+
+                int dayIndex = 0;
+
+                // STEP 3: Create classes (DAY rotation)
                 foreach (var lessonPlan in lessonPlans)
                 {
-                    var slot = studentSelectedSlots[lessonIndex % studentSelectedSlots.Count];
+                    var currentDayGroup = slotsByDay[dayIndex % slotsByDay.Count];
+                    string dayName = currentDayGroup.Key;
 
-                    if (!Enum.TryParse(slot.Day.dayName, true, out DayOfWeek slotDayOfWeek))
-                        return Request.CreateResponse(HttpStatusCode.BadRequest, new { message = $"Invalid day name: {slot.Day.dayName}" });
+                    DateTime classDate = dayNextDates[dayName];
 
-                    // Composite key for this slot + day
-                    var key = $"{slot.Slot.slotID}_{slot.Day.dayID}";
-                    var tutorSlotForThisDay = _context.TutorSlots
-       .FirstOrDefault(ts =>
-           ts.User.userID == request.tutorID &&
-           ts.Day.dayID == slot.Day.dayID &&
-           ts.Slot.slotID == slot.Slot.slotID);
+                    // Pick first slot of that day (can improve later)
+                    var slot = currentDayGroup.First();
 
-                    if (tutorSlotForThisDay != null)
-                    {
-                        tutorSlotForThisDay.classStatus = "Booked";
-                    }
-                    // Calculate the class date (weekly repetition)
-                    DateTime classDate = GetNextDateForSlotDay(slotDayOfWeek)
-                        .AddDays(slotWeekCounters[key] * 7);
-
-                    // Conflict check for this exact slot
+                    // Conflict check
                     bool conflictExists = _context.Classes.Any(c =>
                         c.ClassDate == classDate &&
                         c.Slot.slotID == slot.Slot.slotID &&
@@ -113,9 +120,21 @@ namespace webapi.Controllers.Classes
                     );
 
                     if (conflictExists)
-                        return Request.CreateResponse(HttpStatusCode.Conflict, new { message = $"Scheduling conflict on {classDate:dd-MMM-yyyy}" });
+                        return Request.CreateResponse(HttpStatusCode.Conflict, new
+                        {
+                            message = $"Conflict on {classDate:dd-MMM-yyyy}"
+                        });
 
-                    // Create the class
+                    // Mark tutor slot booked
+                    var tutorSlot = _context.TutorSlots.FirstOrDefault(ts =>
+                        ts.User.userID == request.tutorID &&
+                        ts.Day.dayID == slot.Day.dayID &&
+                        ts.Slot.slotID == slot.Slot.slotID);
+
+                    if (tutorSlot != null)
+                        tutorSlot.classStatus = "Booked";
+
+                    // Create class
                     var clas = new Class
                     {
                         User = student,
@@ -134,16 +153,16 @@ namespace webapi.Controllers.Classes
 
                     _context.Classes.Add(clas);
 
-                    // Increment weekly counter for this slot + day
-                    slotWeekCounters[key]++;
+                    // Move this DAY to next week
+                    dayNextDates[dayName] = classDate.AddDays(7);
 
-                    lessonIndex++;
+                    dayIndex++;
                 }
 
-                // Update student request status
+                // Update request
                 studentRequest.status = "Accepted";
 
-                // Reject other requests with same tutor + Surah
+                // Reject other requests
                 var otherRequests = (
                     from ts in _context.TutorSlots
                     join ss in _context.StudentSlots
@@ -152,7 +171,6 @@ namespace webapi.Controllers.Classes
                         on ts.User.userID equals stR.User1.userID
                     where stR.User.userID != request.studentID
                           && ts.User.userID == request.tutorID
-                          && stR.User.userID != ss.User.userID
                           && stR.surah.Id == request.surahID
                     select stR
                 ).Distinct().ToList();
@@ -160,17 +178,12 @@ namespace webapi.Controllers.Classes
                 foreach (var item in otherRequests)
                     item.status = "Rejected";
 
-                // Mark tutor slots as booked for these student-selected slots
-                //foreach (var ts in studentSelectedSlots)
-                //    ts.classStatus = "Booked";
-
-                // Save all changes
                 _context.SaveChanges();
 
                 return Request.CreateResponse(HttpStatusCode.OK, new
                 {
                     success = true,
-                    message = "Classes created successfully"
+                    message = "Classes created successfully (DAY-based scheduling applied)"
                 });
             }
             catch (Exception ex)

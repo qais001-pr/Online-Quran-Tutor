@@ -13,8 +13,6 @@ namespace webapi.Controllers.Student
     public interface IStudentsController
     {
         HttpResponseMessage addStudent();
-        //HttpResponseMessage addStudentSlots(StudentSlots studentSlot);
-        //HttpResponseMessage removeStudentSlots(StudentSlots studentSlot);
         HttpResponseMessage getAvailableTutorByStudentID(int studentID);
 
         HttpResponseMessage getTutorData(int userID);
@@ -104,45 +102,6 @@ namespace webapi.Controllers.Student
             }
         }
 
-
-        //[HttpPost]
-        //public HttpResponseMessage addStudentSlots(StudentSlots studentSlot)
-        //{
-        //    if (studentSlot == null)
-        //    {
-        //        return Request.CreateResponse();
-        //    }
-        //    _context.StudentSlots.Add(new StudentSlot()
-        //    {
-        //        Day = _context.Days.Where(d => d.dayID == studentSlot.dayid).FirstOrDefault(),
-        //        Slot = _context.Slots.Where(s => s.slotID == studentSlot.slotid).FirstOrDefault(),
-        //        User = _context.Users.Where(u => u.userID == studentSlot.studentid).FirstOrDefault(),
-        //    });
-        //    _context.SaveChanges();
-        //    return Request.CreateResponse(HttpStatusCode.OK, new { message = "Slot Saved Successfully" });
-        //}
-
-
-        //[HttpPost]
-        //public HttpResponseMessage removeStudentSlots(StudentSlots studentSlot)
-        //{
-        //    if (studentSlot == null)
-        //    {
-        //        return Request.CreateResponse(HttpStatusCode.BadRequest);
-        //    }
-        //    var StudentSlots = _context.StudentSlots.Where(s => s.Slot.slotID == studentSlot.slotid && s.Day.dayID == studentSlot.dayid &&
-        //    s.User.userID == studentSlot.studentid).FirstOrDefault();
-        //    if (StudentSlots == null)
-        //    {
-        //        return Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "Invalid Request" });
-        //    }
-
-        //    _context.StudentSlots.Remove(StudentSlots);
-        //    _context.SaveChanges();
-        //    return Request.CreateResponse(HttpStatusCode.OK, new { message = "Slot Saved Successfully" });
-        //}
-
-
         [HttpGet]
         public HttpResponseMessage getAvailableTutorByStudentID(int studentID)
         {
@@ -177,13 +136,13 @@ namespace webapi.Controllers.Student
             // Tutors matching ALL slots + subject + gender
             var tutors = (
                 from ts in _context.TutorSlots
-                join ss in  _context.StudentSlots
+                join ss in _context.StudentSlots
                     on new { ts.Slot.slotID, ts.Day.dayID }
                     equals new { ss.Slot.slotID, ss.Day.dayID }
                 join u in _context.Users
                     on ts.User.userID equals u.userID
                 where ss.User.userID == studentID
-                      && ts.classStatus == "available"
+                      && ts.classStatus == "pending"
                       && ss.Status == "booked"
                       && ts.status == "booked"
 
@@ -229,6 +188,17 @@ namespace webapi.Controllers.Student
                 u.city,
                 u.country,
 
+                rating = _context.Classes
+        .Where(c => c.User1.userID == u.userID)
+        .Join(_context.Reviews, c => c.ClassID, r => r.Class.ClassID,
+              (c, r) => r.Rating)
+        .Average(rating => (double?)rating) ?? 0.0,
+
+                totalRatings = _context.Classes
+        .Where(c => c.User1.userID == u.userID)
+        .Join(_context.Reviews, c => c.ClassID, r => r.Class.ClassID,
+              (c, r) => r)
+        .Count(),
                 subjects = _context.TutorSubjects
                     .Where(s => s.User.userID == u.userID)
                     .Select(s => new

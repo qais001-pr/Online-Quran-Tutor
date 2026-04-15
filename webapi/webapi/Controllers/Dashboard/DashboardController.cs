@@ -18,7 +18,7 @@ namespace webapi.Controllers.Dashboard
             var today = DateTime.Today;
             var tomorrow = today.AddDays(1);
 
-            var result = context.Classes
+            var result = context.TimeTables
                 .Where(c => c.ClassDate >= today
                          && c.ClassDate < tomorrow
                          && c.Status == "Pending"

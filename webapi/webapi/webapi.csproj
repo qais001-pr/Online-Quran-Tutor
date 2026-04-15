@@ -121,9 +121,6 @@
     <Compile Include="child.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
-    <Compile Include="Class.cs">
-      <DependentUpon>Model1.tt</DependentUpon>
-    </Compile>
     <Compile Include="Controllers\Authorization\AuthController.cs" />
     <Compile Include="Controllers\Child\ChildrenController.cs" />
     <Compile Include="Controllers\Class\ClassesController.cs" />
@@ -200,6 +197,9 @@
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
     <Compile Include="surah.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="TimeTable.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
     <Compile Include="TutorSlot.cs">

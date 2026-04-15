@@ -188,15 +188,15 @@ namespace webapi.Controllers.Student
                 u.city,
                 u.country,
 
-                rating = _context.Classes
+                rating = _context.TimeTables
         .Where(c => c.User1.userID == u.userID)
-        .Join(_context.Reviews, c => c.ClassID, r => r.Class.ClassID,
+        .Join(_context.Reviews, c => c.ClassID, r => r.TimeTable.ClassID,
               (c, r) => r.Rating)
         .Average(rating => (double?)rating) ?? 0.0,
 
-                totalRatings = _context.Classes
+                totalRatings = _context.TimeTables
         .Where(c => c.User1.userID == u.userID)
-        .Join(_context.Reviews, c => c.ClassID, r => r.Class.ClassID,
+        .Join(_context.Reviews, c => c.ClassID, r => r.TimeTable.ClassID,
               (c, r) => r)
         .Count(),
                 subjects = _context.TutorSubjects

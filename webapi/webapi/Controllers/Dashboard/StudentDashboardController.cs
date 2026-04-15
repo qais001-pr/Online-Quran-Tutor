@@ -40,23 +40,23 @@ namespace webapi.Controllers.Dashboard
                 }
 
                 // Get class statistics
-                var studentClasses = _context.Classes.Where(c => c.User.userID == studentId).ToList();
+                var studentClasses = _context.TimeTables.Where(c => c.User.userID == studentId).ToList();
 
-                var currentSurahs = (from c in _context.Classes
-                                     join lp in _context.Classes on c.LessonPlan.lessonPlanID equals lp.LessonPlan.lessonPlanID
+                var currentSurahs = (from c in _context.TimeTables
+                                     join lp in _context.TimeTables on c.LessonPlan.lessonPlanID equals lp.LessonPlan.lessonPlanID
                                      join l in _context.Lessons on lp.LessonPlan.lessonPlanID equals l.LessonPlan.lessonPlanID
                                      where c.User.userID == studentId
                                      select new { surahID = l.surah.Id }).FirstOrDefault();
 
                 var totalAyats = _context.Qurans.Where(q => q.surah.Id == currentSurahs.surahID).Count();
 
-                var completedAyats = (from c in _context.Classes
+                var completedAyats = (from c in _context.TimeTables
                                   join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
                                   join Lesson in _context.Lessons on lp.lessonPlanID equals Lesson.LessonPlan.lessonPlanID
                                       where c.User.userID == studentId && c.Status.ToLower() == "completed"
                                   select Lesson.Quran.AyahText).Distinct().Count();
                 // ✅ Count pending classes for those surahs
-                var penClass = (from c in _context.Classes
+                var penClass = (from c in _context.TimeTables
                                 join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
                                 join l in _context.Lessons on lp.lessonPlanID equals l.LessonPlan.lessonPlanID
                                 where c.User.userID == studentId && c.Status.ToLower() == "pending" && l.surah.Id == currentSurahs.surahID
@@ -64,7 +64,7 @@ namespace webapi.Controllers.Dashboard
                                 .Distinct()
                                 .Count();
 
-                var comClass = (from c in _context.Classes
+                var comClass = (from c in _context.TimeTables
                                 join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
                                 join l in _context.Lessons on lp.lessonPlanID equals l.LessonPlan.lessonPlanID
                                 where c.User.userID == studentId && c.Status.ToLower() == "completed" && l.surah.Id == currentSurahs.surahID
@@ -72,14 +72,14 @@ namespace webapi.Controllers.Dashboard
                                 .Distinct()
                                 .Count();
 
-                var canClass = (from c in _context.Classes
+                var canClass = (from c in _context.TimeTables
                                 join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
                                 join l in _context.Lessons on lp.lessonPlanID equals l.LessonPlan.lessonPlanID
                                 where c.User.userID == studentId && c.Status.ToLower() == "cancelled" && l.surah.Id == currentSurahs.surahID
                                 select c.ClassID)
                                 .Distinct()
                                 .Count();
-                var TotalClass = (from c in _context.Classes
+                var TotalClass = (from c in _context.TimeTables
                                   join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
                                   join l in _context.Lessons on lp.lessonPlanID equals l.LessonPlan.lessonPlanID
                                   where c.User.userID == studentId && l.surah.Id == currentSurahs.surahID
@@ -102,7 +102,7 @@ namespace webapi.Controllers.Dashboard
                     })
                     .FirstOrDefault();
                 var upcomingclassdata = (from lp in _context.LessonPlans
-                                         join c in _context.Classes on lp.lessonPlanID equals c.LessonPlan.lessonPlanID
+                                         join c in _context.TimeTables on lp.lessonPlanID equals c.LessonPlan.lessonPlanID
                                          join l in _context.Lessons on lp.lessonPlanID equals l.LessonPlan.lessonPlanID
                                          join sl in _context.Slots on c.Slot.slotID equals sl.slotID
                                          where c.ClassID == upcomingClass.classId

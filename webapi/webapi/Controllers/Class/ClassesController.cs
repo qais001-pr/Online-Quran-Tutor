@@ -87,7 +87,7 @@ namespace webapi.Controllers.Classes
                         ClassDate = classDate,
                     };
                     _context.TimeTables.Add(newClass);
-            
+
                     var tutorSlot = _context.TutorSlots.FirstOrDefault(ts => ts.User.userID == request.tutorID && ts.Day.dayID == slot.dayID && ts.Slot.slotID == slot.slotID);
                     tutorSlot.classStatus = "Booked";
                 }
@@ -176,7 +176,8 @@ namespace webapi.Controllers.Classes
                               lp.lessonName,
                               c.ClassDate,
                               c.Status
-                          }).ToList();
+                          })
+                          .ToList();
             return Request.CreateResponse(HttpStatusCode.OK, new
             {
                 success = true,
@@ -195,7 +196,7 @@ namespace webapi.Controllers.Classes
                           join tutoruser in _context.Users on c.User1.userID equals tutoruser.userID
                           join studentuser in _context.Users on c.User.userID equals studentuser.userID
                           join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
-                          where c.User1.userID == studentID || c.User.userID == studentID && c.Status.ToLower() == "pending"
+                          where c.User1.userID == studentID || c.User.userID == studentID && c.Status.ToLower() == "pending" && c.ClassDate >= DateTime.Now && c.ClassDate <= DateTime.Now.AddDays(7)
                           select new
                           {
                               c.ClassID,

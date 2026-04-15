@@ -41,12 +41,15 @@ namespace webapi.Controllers.Dashboard
 
                 // Get class statistics
                 var studentClasses = _context.TimeTables.Where(c => c.User.userID == studentId).ToList();
-
+                DateTime today = DateTime.Today;
                 var currentSurahs = (from c in _context.TimeTables
                                      join lp in _context.TimeTables on c.LessonPlan.lessonPlanID equals lp.LessonPlan.lessonPlanID
                                      join l in _context.Lessons on lp.LessonPlan.lessonPlanID equals l.LessonPlan.lessonPlanID
-                                     where c.User.userID == studentId
+                                     where c.User.userID == studentId && c.ClassDate >=today && (c.Status=="pending" || c.Status=="completed")
                                      select new { surahID = l.surah.Id }).FirstOrDefault();
+                
+                var totalLessons = (from l in _context.Lessons 
+                                    where l.surah.Id == currentSurahs.surahID select l).Count();
 
                 var totalAyats = _context.Qurans.Where(q => q.surah.Id == currentSurahs.surahID).Count();
 

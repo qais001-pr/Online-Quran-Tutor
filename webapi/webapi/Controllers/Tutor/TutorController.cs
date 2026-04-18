@@ -143,10 +143,6 @@ namespace webapi.Controllers.Tutor
             return Request.CreateResponse(HttpStatusCode.OK, new { message = "Slot Saved Successfully" });
         }
 
-
-
-
-
         [HttpDelete]
         public HttpResponseMessage removeTutorSlots(TutorSlots tutorSlot)
         {
@@ -231,5 +227,31 @@ namespace webapi.Controllers.Tutor
             });
         }
 
+        [HttpGet]
+        public HttpResponseMessage getHistoryData(int userID)
+        {
+            var currentMonth = DateTime.Now.Month;
+            var result = (from tt in _context.TimeTables
+                          join r in _context.Reviews on tt.ClassID equals r.TimeTable.ClassID
+                          where tt.User1.userID == userID && tt.ClassDate.Month == currentMonth && tt.Status == "completed"
+                          select new
+                          {
+                              tt.ClassID,
+                              tt.ClassDate,
+                              tt.Slot.startTime,
+                              tt.Slot.endTime,
+                              tt.User.profile,
+                              tt.User.name,
+                              r.Rating,
+                              r.Comment
+                          }).Distinct().ToList();
+            return Request.CreateResponse(HttpStatusCode.OK, new
+            {
+                success = true,
+                message = "History data retrieved successfully.",
+                data = result,
+                totalClasses = result.Count()
+            });
+        }
     }
 }

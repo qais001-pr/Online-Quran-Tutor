@@ -130,6 +130,7 @@
     <Compile Include="Controllers\Profile\ProfileController.cs" />
     <Compile Include="Controllers\Quran\QuranController.cs" />
     <Compile Include="Controllers\Request\RequestsController.cs" />
+    <Compile Include="Controllers\Reviews\ReviewsController.cs" />
     <Compile Include="Controllers\Slot\SlotsController.cs" />
     <Compile Include="Controllers\Student\StudentsController.cs" />
     <Compile Include="Controllers\Tutor\TutorController.cs" />
@@ -170,6 +171,7 @@
     <Compile Include="Models\Class\ClassesDTO.cs" />
     <Compile Include="Models\Guardian\GuardianDTO.cs" />
     <Compile Include="Models\Request\RequestDTO.cs" />
+    <Compile Include="Models\Reviews\ReviewDTO.cs" />
     <Compile Include="Models\Slot\DaySlotsDTO.cs" />
     <Compile Include="Models\Slot\UpdateSlot.cs" />
     <Compile Include="Models\Student\StudentDTO.cs" />
@@ -230,8 +232,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Controllers\Reviews\" />
-    <Folder Include="Models\Reviews\" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

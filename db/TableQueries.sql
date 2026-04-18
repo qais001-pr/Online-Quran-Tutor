@@ -147,7 +147,7 @@ CREATE TABLE Lesson (
 );
 
 -- Classes
-CREATE TABLE Classes (
+CREATE TABLE TimeTable (
     ClassID INT IDENTITY(1,1) PRIMARY KEY,
     StudentID INT NOT NULL,
     TutorID INT NOT NULL,
@@ -178,5 +178,12 @@ CREATE TABLE Reviews (
     Rating INT NOT NULL CHECK (Rating BETWEEN 1 AND 5),
     Comment VARCHAR(MAX) NULL,
     CreatedAt DATETIME DEFAULT GETDATE(),
-    CONSTRAINT FK_Reviews_Class FOREIGN KEY (ClassID) REFERENCES Classes(ClassID)
+    CONSTRAINT FK_Reviews_Class FOREIGN KEY (ClassID) REFERENCES Timetable(ClassID)
 );
+
+Create Table Assignment(
+assignmentid int primary key identity(1,1),
+assignmeent varchar(max) not null,
+classid int not null,
+foreign key (classid) references Timetable(classid)
+)

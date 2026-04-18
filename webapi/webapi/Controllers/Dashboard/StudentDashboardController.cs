@@ -3,159 +3,137 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using TimeZoneConverter;
+using System.Data.Entity; // Include for better LINQ support
 
 namespace webapi.Controllers.Dashboard
 {
     public interface IStudentController
     {
-        HttpResponseMessage getDataofStudent(int Student);
+        HttpResponseMessage GetDataOfStudent(int studentId);
     }
-    public class StudentDashboardController : ApiController
+
+    public class StudentDashboardController : ApiController, IStudentController
     {
-        onlineQuranTutorEntities4 _context = new onlineQuranTutorEntities4();
+        private readonly onlineQuranTutorEntities4 _context = new onlineQuranTutorEntities4();
+
         [HttpGet]
         public HttpResponseMessage GetDataOfStudent(int studentId)
         {
             try
             {
-                // Validate input
+                // 1. Basic Validation
                 if (studentId <= 0)
                 {
-                    return Request.CreateResponse(HttpStatusCode.BadRequest, new
-                    {
-                        success = false,
-                        message = "Invalid student ID"
-                    });
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, new { success = false, message = "Invalid student ID" });
                 }
 
-                // Check if student exists
                 var student = _context.Users.FirstOrDefault(u => u.userID == studentId);
                 if (student == null)
                 {
-                    return Request.CreateResponse(HttpStatusCode.NotFound, new
-                    {
-                        success = false,
-                        message = "Student not found"
-                    });
+                    return Request.CreateResponse(HttpStatusCode.NotFound, new { success = false, message = "Student not found" });
                 }
 
-                // Get class statistics
-                var studentClasses = _context.TimeTables.Where(c => c.User.userID == studentId).ToList();
-                DateTime today = DateTime.Today;
-                var currentSurahs = (from c in _context.TimeTables
-                                     join lp in _context.TimeTables on c.LessonPlan.lessonPlanID equals lp.LessonPlan.lessonPlanID
-                                     join l in _context.Lessons on lp.LessonPlan.lessonPlanID equals l.LessonPlan.lessonPlanID
-                                     where c.User.userID == studentId && c.ClassDate >=today && (c.Status=="pending" || c.Status=="completed")
-                                     select new { surahID = l.surah.Id }).FirstOrDefault();
-                
-                var totalLessons = (from l in _context.Lessons 
-                                    where l.surah.Id == currentSurahs.surahID select l).Count();
+                // 2. Current Surah/Lesson Logic
+                // Hum wo latest lesson utha rahe hain jo pending ya completed ho
+                var currentSurahData = (from c in _context.TimeTables
+                                        join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
+                                        join l in _context.Lessons on lp.lessonPlanID equals l.LessonPlan.lessonPlanID
+                                        where c.User.userID == studentId && (c.Status == "pending" || c.Status == "completed")
+                                        orderby c.ClassDate descending
+                                        select new { surahID = l.surah.Id, surahName = l.surah.surah_Urdu_Names }).FirstOrDefault();
 
-                var totalAyats = _context.Qurans.Where(q => q.surah.Id == currentSurahs.surahID).Count();
+                if (currentSurahData == null)
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, new { success = true, message = "No classes found for this student", data = (object)null });
+                }
 
+                // 3. Class Statistics (Optimization: Ek hi baar filter karke counts lein)
+                var studentClassesInSurah = (from c in _context.TimeTables
+                                             join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
+                                             join l in _context.Lessons on lp.lessonPlanID equals l.LessonPlan.lessonPlanID
+                                             where c.User.userID == studentId && l.surah.Id == currentSurahData.surahID
+                                             select new { c.ClassID, c.Status }).Distinct().ToList();
+
+                int totalClass = studentClassesInSurah.Count;
+                int comClass = studentClassesInSurah.Count(x => x.Status.ToLower() == "completed");
+                int penClass = studentClassesInSurah.Count(x => x.Status.ToLower() == "pending");
+                int canClass = studentClassesInSurah.Count(x => x.Status.ToLower() == "cancelled");
+
+                // Progress Calculation
+                decimal progress = totalClass > 0 ? Math.Round((decimal)comClass / totalClass * 100, 2) : 0;
+
+                // 4. Ayat Progress
+                var totalAyats = _context.Qurans.Count(q => q.surah.Id == currentSurahData.surahID);
                 var completedAyats = (from c in _context.TimeTables
-                                  join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
-                                  join Lesson in _context.Lessons on lp.lessonPlanID equals Lesson.LessonPlan.lessonPlanID
-                                      where c.User.userID == studentId && c.Status.ToLower() == "completed"
-                                  select Lesson.Quran.AyahText).Distinct().Count();
-                // ✅ Count pending classes for those surahs
-                var penClass = (from c in _context.TimeTables
-                                join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
-                                join l in _context.Lessons on lp.lessonPlanID equals l.LessonPlan.lessonPlanID
-                                where c.User.userID == studentId && c.Status.ToLower() == "pending" && l.surah.Id == currentSurahs.surahID
-                                select c.ClassID)
-                                .Distinct()
-                                .Count();
+                                      join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
+                                      join l in _context.Lessons on lp.lessonPlanID equals l.LessonPlan.lessonPlanID
+                                      where c.User.userID == studentId && c.Status.ToLower() == "completed" && l.surah.Id == currentSurahData.surahID
+                                      select l.Quran.AyahText).Distinct().Count();
 
-                var comClass = (from c in _context.TimeTables
-                                join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
-                                join l in _context.Lessons on lp.lessonPlanID equals l.LessonPlan.lessonPlanID
-                                where c.User.userID == studentId && c.Status.ToLower() == "completed" && l.surah.Id == currentSurahs.surahID
-                                select c.ClassID)
-                                .Distinct()
-                                .Count();
+                // 5. TimeZone & Upcoming Class Logic
+                TimeZoneInfo userTimeZone;
+                try { userTimeZone = TZConvert.GetTimeZoneInfo(student.timezone ?? "UTC"); }
+                catch { userTimeZone = TimeZoneInfo.Utc; }
 
-                var canClass = (from c in _context.TimeTables
-                                join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
-                                join l in _context.Lessons on lp.lessonPlanID equals l.LessonPlan.lessonPlanID
-                                where c.User.userID == studentId && c.Status.ToLower() == "cancelled" && l.surah.Id == currentSurahs.surahID
-                                select c.ClassID)
-                                .Distinct()
-                                .Count();
-                var TotalClass = (from c in _context.TimeTables
-                                  join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
-                                  join l in _context.Lessons on lp.lessonPlanID equals l.LessonPlan.lessonPlanID
-                                  where c.User.userID == studentId && l.surah.Id == currentSurahs.surahID
-                                  select c.ClassID)
-                               .Distinct()
-                               .Count();
-                var progress = TotalClass > 0 ? Math.Round((decimal)comClass / TotalClass * 100, 2) : 0;
+                DateTime nowInUserZone = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, userTimeZone);
 
-                var upcomingClass = studentClasses
-                    .Where(c => c.ClassDate > DateTime.Now && c.Status.ToLower() != "completed")
+                var upcomingClassRaw = _context.TimeTables
+                    .Where(c => c.User.userID == studentId && c.Status.ToLower() != "completed")
                     .OrderBy(c => c.ClassDate)
-                    .Select(c => new
+                    .ThenBy(c => c.Slot.startTime)
+                    .ToList() // Memory mein conversion ke liye
+                    .FirstOrDefault(c => {
+                        DateTime classEndUtc = c.ClassDate.Date.Add(c.Slot.endTime);
+                        DateTime classEndInUserZone = TimeZoneInfo.ConvertTimeFromUtc(classEndUtc, userTimeZone);
+                        return classEndInUserZone >= nowInUserZone;
+                    });
+
+                object formattedUpcomingClass = null;
+                if (upcomingClassRaw != null)
+                {
+                    formattedUpcomingClass = new
                     {
-                        classId = c.ClassID,
-                        scheduledDate = c.ClassDate.ToLongDateString(),
-                        instructorName = c.User1.name,
-                        instructorProfile = c.User1.profile,
-                        instructorLocation = c.User1.country,
-                        status = c.Status
-                    })
-                    .FirstOrDefault();
-                var upcomingclassdata = (from lp in _context.LessonPlans
-                                         join c in _context.TimeTables on lp.lessonPlanID equals c.LessonPlan.lessonPlanID
-                                         join l in _context.Lessons on lp.lessonPlanID equals l.LessonPlan.lessonPlanID
-                                         join sl in _context.Slots on c.Slot.slotID equals sl.slotID
-                                         where c.ClassID == upcomingClass.classId
-                                         select new
-                                         {
-                                             lp.lessonName,
-                                             l.surah.surah_Urdu_Names,
-                                             startTime = sl.startTime,
-                                             endTime = sl.endTime,
-                                         }).FirstOrDefault();
-                // Build response object
-                var responseData = new
+                        classId = upcomingClassRaw.ClassID,
+                        lessonName = upcomingClassRaw.LessonPlan?.lessonName,
+                        surahName = currentSurahData.surahName,
+                        scheduledDate = upcomingClassRaw.ClassDate.ToString("yyyy-MM-dd"),
+                        startTime = upcomingClassRaw.Slot.startTime.ToString(),
+                        endTime = upcomingClassRaw.Slot.endTime.ToString(),
+                        instructorName = upcomingClassRaw.User1?.name,
+                        instructorProfile = upcomingClassRaw.User1?.profile,
+                        status = upcomingClassRaw.Status
+                    };
+                }
+
+                // 6. Final Response
+                return Request.CreateResponse(HttpStatusCode.OK, new
                 {
                     success = true,
                     data = new
                     {
+                        currentSurah = currentSurahData.surahName,
                         classStatistics = new
                         {
-                            totalClasses = TotalClass,
+                            totalClasses = totalClass,
                             completedClasses = comClass,
                             pendingClasses = penClass,
                             cancelledClasses = canClass,
                             progressPercentage = progress
                         },
-                        upcomingClasses = new
-                        {
-                            classs = upcomingClass,
-                            data = upcomingclassdata,
-                        },
                         surahAyat = new
                         {
                             totalAyats = totalAyats,
-                            completedAyats = completedAyats
-                        }
+                            completedAyats = completedAyats,
+                            ayatProgress = totalAyats > 0 ? Math.Round((decimal)completedAyats / totalAyats * 100, 2) : 0
+                        },
+                        upcomingClass = formattedUpcomingClass
                     }
-                };
-
-                return Request.CreateResponse(HttpStatusCode.OK, responseData);
+                });
             }
             catch (Exception ex)
             {
-                // Log exception (implement your logging here)
-                System.Diagnostics.Debug.WriteLine($"Error in GetDataOfStudent: {ex.Message}");
-
-                return Request.CreateResponse(HttpStatusCode.InternalServerError, new
-                {
-                    success = false,
-                    message = "An error occurred while retrieving student data",
-                    error = ex.Message // Remove in production
-                });
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, new { success = false, message = "Error: " + ex.Message });
             }
         }
     }

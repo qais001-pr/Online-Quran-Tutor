@@ -14,8 +14,11 @@ namespace webapi.Controllers.Student
     {
         HttpResponseMessage addStudent();
         HttpResponseMessage getAvailableTutorByStudentID(int studentID);
-
         HttpResponseMessage getTutorData(int userID);
+
+        HttpResponseMessage getHistoryData(int userID);
+
+
     }
 
     public class StudentsController : ApiController
@@ -274,6 +277,35 @@ namespace webapi.Controllers.Student
             {
                 success = true,
                 tutor = result
+            });
+        }
+
+
+        [HttpGet]
+
+        public  HttpResponseMessage getHistoryData(int userID)
+        {
+            var currentMonth = DateTime.Now.Month;
+            var result = (from tt in _context.TimeTables
+                          join r in _context.Reviews on tt.ClassID equals r.TimeTable.ClassID
+                          where tt.User.userID == userID && tt.ClassDate.Month == currentMonth && tt.Status == "completed"
+                          select new
+                          {
+                              tt.ClassID,
+                              tt.ClassDate,
+                              tt.Slot.startTime,
+                              tt.Slot.endTime,
+                              tt.User1.profile,
+                              tt.User1.name,
+                              r.Rating,
+                              r.Comment
+                          }).Distinct().ToList();
+            return Request.CreateResponse(HttpStatusCode.OK, new
+            {
+                success = true,
+                message = "History data retrieved successfully.",
+                data = result,
+                totalClasses = result.Count()
             });
         }
     }

@@ -35,14 +35,14 @@ namespace webapi.Controllers.Profile
             {
                 string extension = Path.GetExtension(postedFile.FileName);
                 string fileName = postedFile.FileName.ToString();
-                string folderPath = HttpContext.Current.Server.MapPath("~/UploadedGuardianImages/");
+                string folderPath = HttpContext.Current.Server.MapPath("~/Images/");
 
                 if (!Directory.Exists(folderPath))
                     Directory.CreateDirectory(folderPath);
 
                 imagePath = Path.Combine(folderPath, user.email + fileName);
                 postedFile.SaveAs(imagePath);
-                user.profile = "/UploadedGuardianImages/" + user.email + fileName.ToString();
+                user.profile = "/Images/" + user.email + fileName.ToString();
             }
             db.SaveChanges();
             return Request.CreateResponse(HttpStatusCode.OK,new { statusCode = HttpStatusCode.OK, message = "Image Updated Successfuly"});

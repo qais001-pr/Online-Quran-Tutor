@@ -58,8 +58,7 @@ namespace webapi.Controllers.Classes
                                      select new { ts.Day.dayID, ts.Slot.slotID, }).Distinct().OrderBy(s => s.dayID).ThenBy(s => s.slotID).ToList();
 
                 var totalMatchingSlots = matchingSlots.Count;
-                //List<TimeTableResponseDTO> list = new List<TimeTableResponseDTO>();
-
+         
                 int slotsPerWeek = matchingSlots.Count;
 
                 DateTime startDate = GetWeekStart(DateTime.Today);
@@ -155,6 +154,9 @@ namespace webapi.Controllers.Classes
         [HttpGet]
         public HttpResponseMessage getClasses(int tutorID)
         {
+
+            DateTime today = DateTime.Now.Date;
+            DateTime SevenDaysFromNow = DateTime.Now.Date.AddDays(7);
             var result = (from c in _context.TimeTables
                           join d in _context.Days on c.Day.dayID equals d.dayID
                           join s in _context.Slots on c.Slot.slotID equals s.slotID
@@ -162,7 +164,7 @@ namespace webapi.Controllers.Classes
                           join tutoruser in _context.Users on c.User1.userID equals tutoruser.userID
                           join studentuser in _context.Users on c.User.userID equals studentuser.userID
                           join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
-                          where c.User1.userID == tutorID || c.User.userID == tutorID
+                          where c.User1.userID == tutorID && c.Status.ToLower() == "pending" && c.ClassDate >= today && c.ClassDate <= SevenDaysFromNow
                           select new
                           {
                               c.ClassID,
@@ -182,6 +184,7 @@ namespace webapi.Controllers.Classes
             {
                 success = true,
                 data = result,
+                totalClasses = result.Count(),
                 message = "Data Collected successfully",
             });
         }
@@ -189,6 +192,9 @@ namespace webapi.Controllers.Classes
         [HttpGet]
         public HttpResponseMessage getClassesByStudent(int studentID)
         {
+            // 1. Date variables ko pehle calculate karein
+            DateTime today = DateTime.Now.Date;
+            DateTime SevenDaysFromNow = DateTime.Now.Date.AddDays(7);
             var result = (from c in _context.TimeTables
                           join d in _context.Days on c.Day.dayID equals d.dayID
                           join s in _context.Slots on c.Slot.slotID equals s.slotID
@@ -196,7 +202,7 @@ namespace webapi.Controllers.Classes
                           join tutoruser in _context.Users on c.User1.userID equals tutoruser.userID
                           join studentuser in _context.Users on c.User.userID equals studentuser.userID
                           join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
-                          where c.User1.userID == studentID || c.User.userID == studentID && c.Status.ToLower() == "pending" && c.ClassDate >= DateTime.Now && c.ClassDate <= DateTime.Now.AddDays(7)
+                          where c.User1.userID == studentID || c.User.userID == studentID && c.Status.ToLower() == "pending" && c.ClassDate >= today && c.ClassDate <= SevenDaysFromNow
                           select new
                           {
                               c.ClassID,
@@ -215,6 +221,7 @@ namespace webapi.Controllers.Classes
             {
                 success = true,
                 data = result,
+                totalClasses = result.Count(),
                 message = "Data Collected successfully",
             });
         }

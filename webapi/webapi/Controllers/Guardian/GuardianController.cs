@@ -111,18 +111,19 @@ namespace webapi.Controllers.Guardian
         [HttpGet]
         public HttpResponseMessage getChildren(int guardianId)
         {
-            var childrens = from user in _context.Users
-                            join child in _context.children on user.userID equals child.User1.userID
-                            join guardian in _context.Users on child.User.userID equals guardian.userID
-                            where user.userID == guardianId
-                            select new
-                            {
-                                child.childrenID,
-                                child.User.name,
-                                child.User.email,
-                                child.User.profile,
-                                child.User.dateOfBirth,
-                            };
+            var childrens = _context.children
+                .Where(c => c.User1.userID == guardianId)
+                .Select(c => new
+                {
+                    childrenID = c.User.userID,
+                    name = c.User.name,
+                    email = c.User.email,
+                    profile = c.User.profile,
+                    dateOfBirth = c.User.dateOfBirth,
+                    timezone = c.User1.timezone
+                })
+                .ToList();
+
             return Request.CreateResponse(HttpStatusCode.OK, new
             {
                 success = true,

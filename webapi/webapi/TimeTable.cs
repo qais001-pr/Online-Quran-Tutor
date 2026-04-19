@@ -16,6 +16,7 @@ namespace webapi
     {
         public TimeTable()
         {
+            this.Assignments = new HashSet<Assignment>();
             this.Reviews = new HashSet<Review>();
         }
     
@@ -26,6 +27,7 @@ namespace webapi
         public System.DateTime CreatedAt { get; set; }
         public int Surahid { get; set; }
     
+        public virtual ICollection<Assignment> Assignments { get; set; }
         public virtual Day Day { get; set; }
         public virtual LessonPlan LessonPlan { get; set; }
         public virtual ICollection<Review> Reviews { get; set; }

@@ -190,7 +190,6 @@ namespace webapi.Controllers.Student
                 u.about,
                 u.city,
                 u.country,
-
                 rating = _context.TimeTables
         .Where(c => c.User1.userID == u.userID)
         .Join(_context.Reviews, c => c.ClassID, r => r.TimeTable.ClassID,

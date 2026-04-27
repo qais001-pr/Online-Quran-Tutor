@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
@@ -57,6 +58,7 @@ namespace webapi.Controllers.Reviews
             };
 
             classData.Status = "completed";
+            classData.Corrections = assign.corrections;
             int slotID = classData.Slot.slotID;
             int dayID = classData.Day.dayID;
             var turorID = classData.User1.userID;

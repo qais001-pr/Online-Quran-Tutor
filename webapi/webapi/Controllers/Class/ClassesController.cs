@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using TimeZoneConverter;
 using webapi.Models.Class;
 namespace webapi.Controllers.Classes
 {
@@ -15,6 +16,8 @@ namespace webapi.Controllers.Classes
         HttpResponseMessage getClassDataByUsingClassID(int ClassID);
         HttpResponseMessage createClassesAndAcceptRequests(AcceptRequestDTO request);
         HttpResponseMessage getLessons(int ClassID);
+        HttpResponseMessage MissedClasses(int userID);
+
     }
     public class ClassesController : ApiController, IClass
     {
@@ -58,7 +61,7 @@ namespace webapi.Controllers.Classes
                                      select new { ts.Day.dayID, ts.Slot.slotID, }).Distinct().OrderBy(s => s.dayID).ThenBy(s => s.slotID).ToList();
 
                 var totalMatchingSlots = matchingSlots.Count;
-         
+
                 int slotsPerWeek = matchingSlots.Count;
 
                 DateTime startDate = GetWeekStart(DateTime.Today);
@@ -192,7 +195,16 @@ namespace webapi.Controllers.Classes
         [HttpGet]
         public HttpResponseMessage getClassesByStudent(int studentID)
         {
-            // 1. Date variables ko pehle calculate karein
+            var TimeZone = _context.Users.Where(u => u.userID == studentID).Select(u => u.timezone).FirstOrDefault();
+            TimeZoneInfo userTimeZone;
+            try
+            {
+                userTimeZone = TZConvert.GetTimeZoneInfo(TimeZone);
+            }
+            catch (Exception)
+            {
+                userTimeZone = TimeZoneInfo.Utc;
+            }
             DateTime today = DateTime.Now.Date;
             DateTime SevenDaysFromNow = DateTime.Now.Date.AddDays(7);
             var result = (from c in _context.TimeTables
@@ -202,7 +214,7 @@ namespace webapi.Controllers.Classes
                           join tutoruser in _context.Users on c.User1.userID equals tutoruser.userID
                           join studentuser in _context.Users on c.User.userID equals studentuser.userID
                           join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
-                          where c.User1.userID == studentID || c.User.userID == studentID && c.Status.ToLower() == "pending" && c.ClassDate >= today && c.ClassDate <= SevenDaysFromNow
+                          where (c.User1.userID == studentID || c.User.userID == studentID) && c.Status.ToLower() == "pending" && c.ClassDate >= today && c.ClassDate <= SevenDaysFromNow
                           select new
                           {
                               c.ClassID,
@@ -216,12 +228,26 @@ namespace webapi.Controllers.Classes
                               lp.lessonName,
                               c.ClassDate,
                               c.Status
-                          }).ToList();
+                          })
+                          .ToList();
+            var filteredData = result.Where(t =>
+            {
+                DateTime utcStart = DateTime.SpecifyKind(t.ClassDate.Date.Add(t.startTime), DateTimeKind.Utc);
+                DateTime utcEnd = DateTime.SpecifyKind(t.ClassDate.Date.Add(t.endTime), DateTimeKind.Utc);
+
+                // Pakistan Time mein convert karein
+                DateTime localStart = TimeZoneInfo.ConvertTimeFromUtc(utcStart, userTimeZone);
+                DateTime localEnd = TimeZoneInfo.ConvertTimeFromUtc(utcEnd, userTimeZone);
+                // Ab check karein ke kya ye "Local Time" ke mutabiq agle 7 din mein hai
+                DateTime localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, userTimeZone);
+                DateTime localLimit = localNow.AddDays(7);
+                return localEnd > localNow && localStart <= localLimit;
+            }).ToList();
             return Request.CreateResponse(HttpStatusCode.OK, new
             {
                 success = true,
-                data = result,
-                totalClasses = result.Count(),
+                data = filteredData,
+                totalClasses = filteredData.Count(),
                 message = "Data Collected successfully",
             });
         }
@@ -309,6 +335,28 @@ namespace webapi.Controllers.Classes
                 message = "Data Collected successfully"
             });
         }
+        [HttpPost]
+        public HttpResponseMessage MissedClasses(int userID)
+        {
+            var currentDate = DateTime.UtcNow.Date;
 
+            var classes = _context.TimeTables
+                .Where(T => T.ClassDate < currentDate
+                       && T.Status.ToLower() == "pending"
+                       && (T.User.userID == userID || T.User1.userID == userID))
+                .ToList();
+
+            foreach (var item in classes)
+            {
+                item.Status = "missed";
+            }
+
+            _context.SaveChanges();
+
+            return Request.CreateResponse(HttpStatusCode.OK, new
+            {
+                totalResult = classes.Count
+            });
+        }
     }
 }

@@ -120,7 +120,7 @@ namespace webapi.Controllers.Guardian
                     email = c.User.email,
                     profile = c.User.profile,
                     dateOfBirth = c.User.dateOfBirth,
-                    timezone = c.User1.timezone
+                    timezone = c.User.timezone
                 })
                 .ToList();
 

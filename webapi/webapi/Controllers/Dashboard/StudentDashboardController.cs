@@ -13,7 +13,7 @@ namespace webapi.Controllers.Dashboard
         HttpResponseMessage GetDataOfStudent(int studentId);
     }
 
-    public class StudentDashboardController : ApiController, IStudentController
+    public class StudentDashboardController : ApiController
     {
         private readonly onlineQuranTutorEntities4 _context = new onlineQuranTutorEntities4();
 
@@ -37,11 +37,9 @@ namespace webapi.Controllers.Dashboard
                 // 2. Current Surah/Lesson Logic
                 // Hum wo latest lesson utha rahe hain jo pending ya completed ho
                 var currentSurahData = (from c in _context.TimeTables
-                                        join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
-                                        join l in _context.Lessons on lp.lessonPlanID equals l.LessonPlan.lessonPlanID
-                                        where c.User.userID == studentId && (c.Status == "pending" || c.Status == "completed")
+                                        where c.Enrollment.User.userID == studentId && (c.Status == "pending" || c.Status == "completed")
                                         orderby c.ClassDate descending
-                                        select new { surahID = l.surah.Id, surahName = l.surah.surah_Urdu_Names }).FirstOrDefault();
+                                        select new { surahID = c.Enrollment.surah.Id, surahName = c.Enrollment.surah.surah_Urdu_Names }).FirstOrDefault();
 
                 if (currentSurahData == null)
                 {
@@ -50,10 +48,8 @@ namespace webapi.Controllers.Dashboard
 
                 // 3. Class Statistics (Optimization: Ek hi baar filter karke counts lein)
                 var studentClassesInSurah = (from c in _context.TimeTables
-                                             join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
-                                             join l in _context.Lessons on lp.lessonPlanID equals l.LessonPlan.lessonPlanID
-                                             where c.User.userID == studentId && l.surah.Id == currentSurahData.surahID
-                                             select new { c.ClassID, c.Status }).Distinct().ToList();
+                                             where c.Enrollment.User.userID == studentId && c.Enrollment.surah.Id == currentSurahData.surahID
+                                             select new { c.TimeTableid, c.Status }).Distinct().ToList();
 
                 int totalClass = studentClassesInSurah.Count;
                 int comClass = studentClassesInSurah.Count(x => x.Status.ToLower() == "completed");
@@ -66,10 +62,11 @@ namespace webapi.Controllers.Dashboard
                 // 4. Ayat Progress
                 var totalAyats = _context.Qurans.Count(q => q.surah.Id == currentSurahData.surahID);
                 var completedAyats = (from c in _context.TimeTables
-                                      join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
-                                      join l in _context.Lessons on lp.lessonPlanID equals l.LessonPlan.lessonPlanID
-                                      where c.User.userID == studentId && c.Status.ToLower() == "completed" && l.surah.Id == currentSurahData.surahID
-                                      select l.Quran.AyahText).Distinct().Count();
+                                          //join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
+                                          //join l in _context.Lessons on lp.lessonPlanID equals l.LessonPlan.lessonPlanID
+                                      join q in _context.Qurans on c.Enrollment.surah.Id equals q.surah.Id
+                                      where c.Enrollment.User.userID == studentId && c.Status.ToLower() == "completed" && c.Enrollment.surah.Id == currentSurahData.surahID
+                                      select new { q.ID, q.AyahText }).Distinct().Count();
 
                 // 5. TimeZone & Upcoming Class Logic
                 TimeZoneInfo userTimeZone;
@@ -79,11 +76,12 @@ namespace webapi.Controllers.Dashboard
                 DateTime nowInUserZone = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, userTimeZone);
 
                 var upcomingClassRaw = _context.TimeTables
-                    .Where(c => c.User.userID == studentId && c.Status.ToLower() != "completed")
+                    .Where(c => c.Enrollment.User.userID == studentId && c.Status.ToLower() != "completed")
                     .OrderBy(c => c.ClassDate)
                     .ThenBy(c => c.Slot.startTime)
-                    .ToList() // Memory mein conversion ke liye
-                    .FirstOrDefault(c => {
+                    .ToList()
+                    .FirstOrDefault(c =>
+                    {
                         DateTime classEndUtc = c.ClassDate.Date.Add(c.Slot.endTime);
                         DateTime classEndInUserZone = TimeZoneInfo.ConvertTimeFromUtc(classEndUtc, userTimeZone);
                         return classEndInUserZone >= nowInUserZone;
@@ -94,14 +92,14 @@ namespace webapi.Controllers.Dashboard
                 {
                     formattedUpcomingClass = new
                     {
-                        classId = upcomingClassRaw.ClassID,
-                        lessonName = upcomingClassRaw.LessonPlan?.lessonName,
+                        classId = upcomingClassRaw.TimeTableid,
+                        lessonName = upcomingClassRaw.Enrollment.surah.surah_Urdu_Names,
                         surahName = currentSurahData.surahName,
                         scheduledDate = upcomingClassRaw.ClassDate.ToString("yyyy-MM-dd"),
                         startTime = upcomingClassRaw.Slot.startTime.ToString(),
                         endTime = upcomingClassRaw.Slot.endTime.ToString(),
-                        instructorName = upcomingClassRaw.User1?.name,
-                        instructorProfile = upcomingClassRaw.User1?.profile,
+                        instructorName = upcomingClassRaw.Enrollment.User1.userID,
+                        instructorProfile = upcomingClassRaw.Enrollment.User1.profile,
                         status = upcomingClassRaw.Status
                     };
                 }

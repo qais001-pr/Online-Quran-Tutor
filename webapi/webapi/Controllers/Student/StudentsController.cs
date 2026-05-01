@@ -191,14 +191,12 @@ namespace webapi.Controllers.Student
                 u.city,
                 u.country,
                 rating = _context.TimeTables
-        .Where(c => c.User1.userID == u.userID)
-        .Join(_context.Reviews, c => c.ClassID, r => r.TimeTable.ClassID,
-              (c, r) => r.Rating)
+        .Where(c => c.Enrollment.User1.userID == u.userID)
+        .Join(_context.Reviews, c => c.TimeTableid, r => r.TimeTable.TimeTableid, (c, r) => r.Rating)
         .Average(rating => (double?)rating) ?? 0.0,
-
-                totalRatings = _context.TimeTables
-        .Where(c => c.User1.userID == u.userID)
-        .Join(_context.Reviews, c => c.ClassID, r => r.TimeTable.ClassID,
+        totalRatings = _context.TimeTables
+        .Where(c => c.Enrollment.User1.userID == u.userID)
+        .Join(_context.Reviews, c => c.TimeTableid, r => r.TimeTable.TimeTableid,
               (c, r) => r)
         .Count(),
                 subjects = _context.TutorSubjects
@@ -238,7 +236,7 @@ namespace webapi.Controllers.Student
                     t.timezone,
                     t.profile,
                     t.about,
-                    TutorSubjects = t.TutorSubjects   // 👈 DON'T project here yet
+                    TutorSubjects = t.TutorSubjects
                 })
                 .FirstOrDefault();
 
@@ -250,8 +248,6 @@ namespace webapi.Controllers.Student
                     message = "Tutor not found."
                 });
             }
-
-            // ✅ Now convert in memory (SAFE)
             var result = new
             {
                 tutorData.userID,
@@ -281,33 +277,24 @@ namespace webapi.Controllers.Student
 
 
         [HttpGet]
-        public  HttpResponseMessage getHistoryData(int userID)
+        public HttpResponseMessage getHistoryData(int userID)
         {
             var currentMonth = DateTime.Now.Month;
-            var totalMissedClasses= _context.TimeTables.Where(tt => tt.Status == "missed" && tt.ClassDate.Month == currentMonth && (tt.User.userID == userID || tt.User1.userID == userID)).Count();
-            var totalCompletedClasses = _context.TimeTables.Where(tt => tt.Status == "completed" && tt.ClassDate.Month == currentMonth && (tt.User.userID == userID || tt.User1.userID == userID)).Count();
+            var totalMissedClasses = _context.TimeTables.Where(tt => tt.Status == "missed" && tt.ClassDate.Month == currentMonth && (tt.Enrollment.User.userID == userID || tt.Enrollment.User1.userID == userID)).Count();
+            var totalCompletedClasses = _context.TimeTables.Where(tt => tt.Status == "completed" && tt.ClassDate.Month == currentMonth && (tt.Enrollment.User.userID == userID || tt.Enrollment.User1.userID == userID)).Count();
             var result = (from tt in _context.TimeTables
-                          where (tt.User.userID == userID || tt.User1.userID == userID) && tt.ClassDate.Month == currentMonth && (tt.Status == "completed" || tt.Status == "missed")
+                          where (tt.Enrollment.User.userID == userID || tt.Enrollment.User1.userID == userID) && tt.ClassDate.Month == currentMonth && (tt.Status == "completed" || tt.Status == "missed")
                           select new
                           {
-                              tt.ClassID,
+                              tt.TimeTableid,
                               tt.ClassDate,
                               tt.Slot.startTime,
                               tt.Slot.endTime,
-                              tt.User1.profile,
-                              tt.User1.name,
+                              tt.Enrollment.User1.profile,
+                              tt.Enrollment.User1.name,
                               tt.Corrections,
-                              comment = (from r in _context.Reviews
-                                         where r.TimeTable.ClassID == tt.ClassID
-                                         select r.Comment).FirstOrDefault(),
-                              rating = (from r in _context.Reviews
-                                        where r.TimeTable.ClassID == tt.ClassID
-                                        select r.Rating).FirstOrDefault(),
-                             assignment = (from a in _context.Assignments
-                                           where a.TimeTable.ClassID == tt.ClassID
-                                           select a.assignmeent).FirstOrDefault(),
                               tt.Status,
-                          }).OrderBy(t=>t.ClassDate).ThenBy(t=>t.startTime)
+                          }).OrderBy(t => t.ClassDate).ThenBy(t => t.startTime)
                           .ToList();
             return Request.CreateResponse(HttpStatusCode.OK, new
             {

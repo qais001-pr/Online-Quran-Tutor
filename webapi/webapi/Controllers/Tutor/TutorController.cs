@@ -21,7 +21,7 @@ namespace webapi.Controllers.Tutor
     }
 
 
-    public class TutorController : ApiController, ITutorController
+    public class TutorController : ApiController
     {
         onlineQuranTutorEntities4 _context = new onlineQuranTutorEntities4();
         [HttpPost]
@@ -232,23 +232,20 @@ namespace webapi.Controllers.Tutor
         public HttpResponseMessage getHistoryData(int userID)
         {
             var currentMonth = DateTime.Now.Month;
-            var totalMissedClasses = _context.TimeTables.Where(tt => tt.Status == "missed" && tt.ClassDate.Month == currentMonth && (tt.User.userID == userID || tt.User1.userID == userID)).Count();
-            var totalCompletedClasses = _context.TimeTables.Where(tt => tt.Status == "completed" && tt.ClassDate.Month == currentMonth && (tt.User.userID == userID || tt.User1.userID == userID)).Count();
+            var totalMissedClasses = _context.TimeTables.Where(tt => tt.Status == "missed" && tt.ClassDate.Month == currentMonth && (tt.Enrollment.User.userID == userID || tt.Enrollment.User1.userID == userID)).Count();
+            var totalCompletedClasses = _context.TimeTables.Where(tt => tt.Status == "completed" && tt.ClassDate.Month == currentMonth && (tt.Enrollment.User.userID == userID || tt.Enrollment.User1.userID == userID)).Count();
             var result = (from tt in _context.TimeTables
-                          where (tt.User1.userID == userID || tt.User.userID == userID) && tt.ClassDate.Month == currentMonth && (tt.Status == "completed" || tt.Status == "missed")
+                          where (tt.Enrollment.User1.userID == userID || tt.Enrollment.User.userID == userID) && tt.ClassDate.Month == currentMonth && (tt.Status == "completed" || tt.Status == "missed")
                           select new
                           {
-                              tt.ClassID,
+                              tt.TimeTableid,
                               tt.ClassDate,
                               tt.Slot.startTime,
                               tt.Slot.endTime,
-                              tt.User.profile,
-                              tt.User.name,
+                              tt.Enrollment.User.profile,
+                              tt.Enrollment.User.name,
                               tt.Status,
                               tt.Corrections,
-                              assignment = (from a in _context.Assignments where a.TimeTable.ClassID == tt.ClassID select a.assignmeent).FirstOrDefault(),
-                              rating = (from rev in _context.Reviews where rev.TimeTable.ClassID == tt.ClassID select rev.Rating).FirstOrDefault(),
-                              Comment = (from rev in _context.Reviews where rev.TimeTable.ClassID == tt.ClassID select rev.Comment).FirstOrDefault()
                           }).OrderBy(c => c.ClassDate)
                           .ThenBy(c => c.startTime)
                           .Distinct().ToList();

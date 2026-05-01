@@ -16,25 +16,21 @@ namespace webapi
     {
         public TimeTable()
         {
-            this.Assignments = new HashSet<Assignment>();
+            this.Progresses = new HashSet<Progress>();
             this.Reviews = new HashSet<Review>();
         }
     
-        public int ClassID { get; set; }
+        public int TimeTableid { get; set; }
+        public int startIndex { get; set; }
+        public int endIndex { get; set; }
         public string Status { get; set; }
-        public string Corrections { get; set; }
         public System.DateTime ClassDate { get; set; }
-        public System.DateTime CreatedAt { get; set; }
-        public int Surahid { get; set; }
+        public string Corrections { get; set; }
     
-        public virtual ICollection<Assignment> Assignments { get; set; }
         public virtual Day Day { get; set; }
-        public virtual LessonPlan LessonPlan { get; set; }
+        public virtual Enrollment Enrollment { get; set; }
+        public virtual ICollection<Progress> Progresses { get; set; }
         public virtual ICollection<Review> Reviews { get; set; }
         public virtual Slot Slot { get; set; }
-        public virtual StudentTutorRequest StudentTutorRequest { get; set; }
-        public virtual Subject Subject { get; set; }
-        public virtual User User { get; set; }
-        public virtual User User1 { get; set; }
     }
 }

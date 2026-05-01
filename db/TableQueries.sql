@@ -13,8 +13,45 @@ CREATE TABLE Days (
 CREATE TABLE Slots (
     slotID INT IDENTITY(1,1) PRIMARY KEY,
     startTime TIME NOT NULL,
-    endTime TIME NOT NULL,
-    createdAt DATETIME DEFAULT GETDATE()
+    endTime TIME NOT NULL
+);
+
+
+
+
+-- Surahs
+CREATE TABLE Surahs (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    surah_names NVARCHAR(200) NOT NULL,
+    Surah_Urdu_Names NVARCHAR(200) NOT NULL
+);
+
+-- Quran
+CREATE TABLE Quran (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    SuraID INT NOT NULL,
+    VerseID INT NOT NULL,
+    AyatText NVARCHAR(MAX) NOT NULL,
+    CONSTRAINT FK_Verses_Surah FOREIGN KEY (SuraID) REFERENCES Surahs(id)
+);
+
+-- LessonPlan
+CREATE TABLE LessonPlan (
+    lessonPlanID INT IDENTITY(1,1) PRIMARY KEY,
+    lessonName VARCHAR(200) NOT NULL
+);
+
+-- Lessons
+CREATE TABLE Lesson (
+    LessonsID INT IDENTITY(1,1) PRIMARY KEY,
+    LessonPlanID INT NOT NULL,
+    QuranID INT NOT NULL,
+    SubjectID INT NOT NULL,
+    SurahID INT NOT NULL,
+    CONSTRAINT FK_Lessons_Subject FOREIGN KEY (SubjectID) REFERENCES Subject(SubjectID),
+    CONSTRAINT FK_Lessons_SurahID FOREIGN KEY (SurahID) REFERENCES surahs(id),
+    CONSTRAINT FK_Lessons_LessonPlan FOREIGN KEY (LessonPlanID) REFERENCES LessonPlan(lessonPlanID),
+    CONSTRAINT FK_Lessons_Quran FOREIGN KEY (QuranID) REFERENCES Quran(ID)
 );
 
 -- User
@@ -38,8 +75,7 @@ CREATE TABLE [Users] (
 
 
 
---children 
-
+--Childrens 
 create table children(
 childrenID int primary Key identity(1,1),
 childId int not null,
@@ -57,7 +93,6 @@ CREATE TABLE Certificate (
     issuedBy VARCHAR(200),
     imagePath VARCHAR(MAX),
     userid INT NOT NULL,
-    createdAt DATETIME DEFAULT GETDATE(),
     CONSTRAINT FK_Certificate_Tutor FOREIGN KEY (USERID) REFERENCES users(USERID)
 );
 
@@ -68,7 +103,7 @@ CREATE TABLE TutorSlots (
     slotID INT NOT NULL,
     dayID INT NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'available',
-    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    classStatus VARCHAR(20) NOT NULL DEFAULT 'pending',
     CONSTRAINT FK_TutorSlots_Tutor FOREIGN KEY (userid) REFERENCES users(userid),
     CONSTRAINT FK_TutorSlots_Slot FOREIGN KEY (slotID) REFERENCES Slots(slotID),
     CONSTRAINT FK_TutorSlots_Day FOREIGN KEY (dayID) REFERENCES Days(dayID)
@@ -110,92 +145,54 @@ CREATE TABLE StudentTutorRequests (
     CONSTRAINT FK_SurahID FOREIGN KEY (Surahid) REFERENCES surahs(id)
 );
 
-
-
+-- Enrollment 
 create Table Enrollment (
 enrollmentid int primary key identity(1,1),
 studentid int,
 tutorid int,
 subjectid int,
+surahid int,
+RequestID int not null,
+currentayat int NOT NULL DEFAULT 1,
 enrollment_status varchar(20) not null DEFAULT 'Active',
 foreign key (studentid) references Users(userid),
 foreign key (tutorid) references Users(userid),
-foreign key (subjectid) references Subjects(subjectid))
+foreign key (subjectid) references Subjects(subjectid),
+foreign key (surahid) references Surahs(Id),
+foreign key (RequestID) references StudentTutorRequests(RequestID));
 
-
--- Surahs
-CREATE TABLE Surahs (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    surah_names NVARCHAR(200) NOT NULL,
-    Surah_Urdu_Names NVARCHAR(200) NOT NULL
-);
-
--- Quran
-CREATE TABLE Quran (
-    ID INT IDENTITY(1,1) PRIMARY KEY,
-    VerseID INT NOT NULL,
-    AyatText NVARCHAR(MAX) NOT NULL,
-    SurahID INT NOT NULL,
-    CONSTRAINT FK_Verses_Surah FOREIGN KEY (SurahID) REFERENCES Surahs(id)
-);
-
--- LessonPlan
-CREATE TABLE LessonPlan (
-    lessonPlanID INT IDENTITY(1,1) PRIMARY KEY,
-    lessonName VARCHAR(200) NOT NULL
-);
-
--- Lessons
-CREATE TABLE Lesson (
-    LessonsID INT IDENTITY(1,1) PRIMARY KEY,
-    LessonPlanID INT NOT NULL,
-    QuranID INT NOT NULL,
-    SubjectID INT NOT NULL,
-    SurahID INT NOT NULL,
-    CONSTRAINT FK_Lessons_Subject FOREIGN KEY (SubjectID) REFERENCES Subject(SubjectID),
-    CONSTRAINT FK_Lessons_SurahID FOREIGN KEY (SurahID) REFERENCES surahs(id),
-    CONSTRAINT FK_Lessons_LessonPlan FOREIGN KEY (LessonPlanID) REFERENCES LessonPlan(lessonPlanID),
-    CONSTRAINT FK_Lessons_Quran FOREIGN KEY (QuranID) REFERENCES Quran(ID)
-);
-
--- Classes
+-- TimeTable
 CREATE TABLE TimeTable (
-    ClassID INT IDENTITY(1,1) PRIMARY KEY,
-    StudentID INT NOT NULL,
-    TutorID INT NOT NULL,
+    TimeTableid INT IDENTITY(1,1) PRIMARY KEY,
+    enrollmentid int NOT NULL,
     SlotID INT NOT NULL,
-    SubjectID INT NOT NULL,
-    LessonPlanID INT NOT NULL,
-    StudentRequestTutorID INT NOT NULL,
     dayid int not null,
+    startIndex int not null,
+    endIndex int not null,
     Status VARCHAR(50) NOT NULL DEFAULT 'Scheduled',
-    Corrections VARCHAR(MAX) NULL,
     ClassDate DATE NOT NULL,
-
-    CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
-
-    CONSTRAINT FK_Classes_Student FOREIGN KEY (StudentID) REFERENCES users(userid),
-    CONSTRAINT FK_Classes_Tutor FOREIGN KEY (TutorID) REFERENCES users(userid),
+    Corrections VARCHAR(MAX) NULL,
+    CONSTRAINT FK_Classes_Enrollment FOREIGN KEY (enrollmentid) REFERENCES Enrollment(enrollmentid),
     CONSTRAINT FK_Classes_Slot FOREIGN KEY (SlotID) REFERENCES Slots(slotID),
-    CONSTRAINT FK_Classes_Subject FOREIGN KEY (SubjectID) REFERENCES Subjects(subjectID),
-    CONSTRAINT FK_Classes_LessonPlan FOREIGN KEY (LessonPlanID) REFERENCES LessonPlan(lessonPlanID),
-    CONSTRAINT FK_Classes_StudentRequestTutor FOREIGN KEY (StudentRequestTutorID) REFERENCES StudentTutorRequests(RequestID),
-     constraint FK_Class_DAY FOREIGN KEY (dayid) REFERENCES Days(dayid)
-);
+    CONSTRAINT FK_Class_DAY FOREIGN KEY (dayid) REFERENCES Days(dayid));
+
+
+--Progress Table
+CREATE TABLE Progress(
+    progressid INT PRIMARY KEY IDENTITY(1,1),
+    startAyat int not null,
+    endAyat int not null,
+    timetableid int not null,
+    notes VARCHAR(100) not null,
+    FOREIGN KEY (timetableid) references TimeTable(TimeTableid)
+)
 
 -- Reviews
 CREATE TABLE Reviews (
     ReviewID INT IDENTITY(1,1) PRIMARY KEY,
-    ClassID INT NOT NULL,
+    TimeTableID INT NOT NULL,
     Rating INT NOT NULL CHECK (Rating BETWEEN 1 AND 5),
     Comment VARCHAR(MAX) NULL,
     CreatedAt DATETIME DEFAULT GETDATE(),
-    CONSTRAINT FK_Reviews_Class FOREIGN KEY (ClassID) REFERENCES Timetable(ClassID)
+    CONSTRAINT FK_Reviews_TimeTable FOREIGN KEY (TimeTableID) REFERENCES TimeTable(TimeTableID)
 );
-
-Create Table Assignment(
-assignmentid int primary key identity(1,1),
-assignmeent varchar(max) not null,
-classid int not null,
-foreign key (classid) references Timetable(classid)
-)

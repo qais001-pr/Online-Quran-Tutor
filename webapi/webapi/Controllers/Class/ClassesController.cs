@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -19,116 +18,116 @@ namespace webapi.Controllers.Classes
         HttpResponseMessage MissedClasses(int userID);
 
     }
-    public class ClassesController : ApiController, IClass
+    public class ClassesController : ApiController
     {
         onlineQuranTutorEntities4 _context = new onlineQuranTutorEntities4();
 
 
-        [HttpPost]
-        public HttpResponseMessage createClassesAndAcceptRequests(AcceptRequestDTO request)
-        {
-            try
-            {
-                var student = _context.Users.FirstOrDefault(u => u.userID == request.studentID);
-                var tutor = _context.Users.FirstOrDefault(u => u.userID == request.tutorID);
-                var subject = _context.Subjects.FirstOrDefault(s => s.subjectID == request.subjectID);
-                var studentRequest = _context.StudentTutorRequests.FirstOrDefault(r => r.RequestID == request.requestID);
+        //[HttpPost]
+        //public HttpResponseMessage createClassesAndAcceptRequests(AcceptRequestDTO request)
+        //{
+        //    try
+        //    {
+        //        var student = _context.Users.FirstOrDefault(u => u.userID == request.studentID);
+        //        var tutor = _context.Users.FirstOrDefault(u => u.userID == request.tutorID);
+        //        var subject = _context.Subjects.FirstOrDefault(s => s.subjectID == request.subjectID);
+        //        var studentRequest = _context.StudentTutorRequests.FirstOrDefault(r => r.RequestID == request.requestID);
 
-                if (student == null || tutor == null || subject == null || studentRequest == null)
-                {
-                    return Request.CreateResponse(HttpStatusCode.BadRequest, new
-                    {
-                        message = "Invalid student, tutor, subject, or request."
-                    });
-                }
+        //        if (student == null || tutor == null || subject == null || studentRequest == null)
+        //        {
+        //            return Request.CreateResponse(HttpStatusCode.BadRequest, new
+        //            {
+        //                message = "Invalid student, tutor, subject, or request."
+        //            });
+        //        }
 
-                var lessonPlans = _context.Lessons
-                    .Where(l => l.Subject.subjectID == request.subjectID && l.surah.Id == request.surahID)
-                    .Select(l => new
-                    {
-                        l.LessonPlan.lessonPlanID,
-                        l.LessonPlan.lessonName
-                    })
-                    .Distinct()
-                    .OrderBy(lp => lp.lessonPlanID)
-                    .ToList();
+        //        var lessonPlans = _context.Lessons
+        //            .Where(l => l.Subject.subjectID == request.subjectID && l.surah.Id == request.surahID)
+        //            .Select(l => new
+        //            {
+        //                l.LessonPlan.lessonPlanID,
+        //                l.LessonPlan.lessonName
+        //            })
+        //            .Distinct()
+        //            .OrderBy(lp => lp.lessonPlanID)
+        //            .ToList();
 
-                var totalLessonPlans = lessonPlans.Count;
+        //        var totalLessonPlans = lessonPlans.Count;
 
-                var matchingSlots = (from ts in _context.TutorSlots
-                                     join ss in _context.StudentSlots on new { ts.Slot.slotID, ts.Day.dayID } equals new { ss.Slot.slotID, ss.Day.dayID }
-                                     where ts.User.userID == request.tutorID && ss.User.userID == request.studentID && ts.status == "booked" && ss.Status == "booked" && ts.classStatus == "pending"
-                                     select new { ts.Day.dayID, ts.Slot.slotID, }).Distinct().OrderBy(s => s.dayID).ThenBy(s => s.slotID).ToList();
+        //        var matchingSlots = (from ts in _context.TutorSlots
+        //                             join ss in _context.StudentSlots on new { ts.Slot.slotID, ts.Day.dayID } equals new { ss.Slot.slotID, ss.Day.dayID }
+        //                             where ts.User.userID == request.tutorID && ss.User.userID == request.studentID && ts.status == "booked" && ss.Status == "booked" && ts.classStatus == "pending"
+        //                             select new { ts.Day.dayID, ts.Slot.slotID, }).Distinct().OrderBy(s => s.dayID).ThenBy(s => s.slotID).ToList();
 
-                var totalMatchingSlots = matchingSlots.Count;
+        //        var totalMatchingSlots = matchingSlots.Count;
 
-                int slotsPerWeek = matchingSlots.Count;
+        //        int slotsPerWeek = matchingSlots.Count;
 
-                DateTime startDate = GetWeekStart(DateTime.Today);
+        //        DateTime startDate = GetWeekStart(DateTime.Today);
 
-                for (int i = 0; i < lessonPlans.Count; i++)
-                {
-                    var lessonPlanID = lessonPlans[i].lessonPlanID;
-                    int weekIndex = i / slotsPerWeek;
-                    int slotIndex = i % slotsPerWeek;
-                    var slot = matchingSlots[slotIndex];
-                    DateTime classDate = GetClassDate(startDate, weekIndex, slot.dayID);
-                    var newClass = new TimeTable
-                    {
-                        User = student,
-                        User1 = tutor,
-                        Day = _context.Days.FirstOrDefault(d => d.dayID == slot.dayID),
-                        Slot = _context.Slots.FirstOrDefault(s => s.slotID == slot.slotID),
-                        LessonPlan = _context.LessonPlans.FirstOrDefault(lp => lp.lessonPlanID == lessonPlanID),
-                        StudentTutorRequest = studentRequest,
-                        Subject = subject,
-                        Surahid = request.surahID,
-                        CreatedAt = DateTime.Now,
-                        Corrections = "0",
-                        Status = "pending",
-                        ClassDate = classDate,
-                    };
-                    _context.TimeTables.Add(newClass);
+        //        for (int i = 0; i < lessonPlans.Count; i++)
+        //        {
+        //            var lessonPlanID = lessonPlans[i].lessonPlanID;
+        //            int weekIndex = i / slotsPerWeek;
+        //            int slotIndex = i % slotsPerWeek;
+        //            var slot = matchingSlots[slotIndex];
+        //            DateTime classDate = GetClassDate(startDate, weekIndex, slot.dayID);
+        //            var newClass = new TimeTable
+        //            {
+        //                User = student,
+        //                User1 = tutor,
+        //                Day = _context.Days.FirstOrDefault(d => d.dayID == slot.dayID),
+        //                Slot = _context.Slots.FirstOrDefault(s => s.slotID == slot.slotID),
+        //                LessonPlan = _context.LessonPlans.FirstOrDefault(lp => lp.lessonPlanID == lessonPlanID),
+        //                StudentTutorRequest = studentRequest,
+        //                Subject = subject,
+        //                Surahid = request.surahID,
+        //                CreatedAt = DateTime.Now,
+        //                Corrections = "0",
+        //                Status = "pending",
+        //                ClassDate = classDate,
+        //            };
+        //            _context.TimeTables.Add(newClass);
 
-                    var tutorSlot = _context.TutorSlots.FirstOrDefault(ts => ts.User.userID == request.tutorID && ts.Day.dayID == slot.dayID && ts.Slot.slotID == slot.slotID);
-                    tutorSlot.classStatus = "Booked";
-                }
+        //            var tutorSlot = _context.TutorSlots.FirstOrDefault(ts => ts.User.userID == request.tutorID && ts.Day.dayID == slot.dayID && ts.Slot.slotID == slot.slotID);
+        //            tutorSlot.classStatus = "Booked";
+        //        }
 
-                studentRequest.status = "Accepted";
+        //        studentRequest.status = "Accepted";
 
-                // Reject other requests
-                var otherRequests = (
-                    from ts in _context.TutorSlots
-                    join ss in _context.StudentSlots
-                        on new { ts.Slot.slotID, ts.Day.dayID } equals new { ss.Slot.slotID, ss.Day.dayID }
-                    join stR in _context.StudentTutorRequests
-                        on ts.User.userID equals stR.User1.userID
-                    where stR.User.userID != request.studentID
-                          && ts.User.userID == request.tutorID
-                          && stR.surah.Id == request.surahID
-                    select stR
-                ).Distinct().ToList();
+        //        // Reject other requests
+        //        var otherRequests = (
+        //            from ts in _context.TutorSlots
+        //            join ss in _context.StudentSlots
+        //                on new { ts.Slot.slotID, ts.Day.dayID } equals new { ss.Slot.slotID, ss.Day.dayID }
+        //            join stR in _context.StudentTutorRequests
+        //                on ts.User.userID equals stR.User1.userID
+        //            where stR.User.userID != request.studentID
+        //                  && ts.User.userID == request.tutorID
+        //                  && stR.surah.Id == request.surahID
+        //            select stR
+        //        ).Distinct().ToList();
 
-                foreach (var item in otherRequests)
-                    item.status = "Rejected";
+        //        foreach (var item in otherRequests)
+        //            item.status = "Rejected";
 
-                _context.SaveChanges();
+        //        _context.SaveChanges();
 
-                return Request.CreateResponse(HttpStatusCode.OK, new
-                {
-                    statusCode = HttpStatusCode.OK,
-                    message = "Classes created successfully"
-                });
-            }
-            catch (Exception ex)
-            {
-                return Request.CreateResponse(HttpStatusCode.InternalServerError, new
-                {
-                    message = "Something went wrong",
-                    error = ex.Message
-                });
-            }
-        }
+        //        return Request.CreateResponse(HttpStatusCode.OK, new
+        //        {
+        //            statusCode = HttpStatusCode.OK,
+        //            message = "Classes created successfully"
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Request.CreateResponse(HttpStatusCode.InternalServerError, new
+        //        {
+        //            message = "Something went wrong",
+        //            error = ex.Message
+        //        });
+        //    }
+        //}
         private DateTime GetClassDate(DateTime startDate, int weekIndex, int dayId)
         {
             int dayOffset = dayId - 1;
@@ -163,14 +162,14 @@ namespace webapi.Controllers.Classes
             var result = (from c in _context.TimeTables
                           join d in _context.Days on c.Day.dayID equals d.dayID
                           join s in _context.Slots on c.Slot.slotID equals s.slotID
-                          join sb in _context.Subjects on c.Subject.subjectID equals sb.subjectID
-                          join tutoruser in _context.Users on c.User1.userID equals tutoruser.userID
-                          join studentuser in _context.Users on c.User.userID equals studentuser.userID
-                          join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
-                          where c.User1.userID == tutorID && c.Status.ToLower() == "pending" && c.ClassDate >= today && c.ClassDate <= SevenDaysFromNow
+                          join sb in _context.Subjects on c.Enrollment.Subject.subjectID equals sb.subjectID
+                          join tutoruser in _context.Users on c.Enrollment.User1.userID equals tutoruser.userID
+                          join studentuser in _context.Users on c.Enrollment.User.userID equals studentuser.userID
+                          //join lp in _context.LessonPlans on c.Enrollment.LessonPlan.lessonPlanID equals lp.lessonPlanID
+                          where c.Enrollment.User1.userID == tutorID && c.Status.ToLower() == "pending" && c.ClassDate >= today && c.ClassDate <= SevenDaysFromNow
                           select new
                           {
-                              c.ClassID,
+                              c.TimeTableid,
                               studentname = studentuser.name,
                               studentProfileImage = studentuser.profile,
                               tutorName = tutoruser.name,
@@ -178,7 +177,6 @@ namespace webapi.Controllers.Classes
                               d.dayName,
                               s.startTime,
                               s.endTime,
-                              lp.lessonName,
                               c.ClassDate,
                               c.Status
                           })
@@ -210,14 +208,13 @@ namespace webapi.Controllers.Classes
             var result = (from c in _context.TimeTables
                           join d in _context.Days on c.Day.dayID equals d.dayID
                           join s in _context.Slots on c.Slot.slotID equals s.slotID
-                          join sb in _context.Subjects on c.Subject.subjectID equals sb.subjectID
-                          join tutoruser in _context.Users on c.User1.userID equals tutoruser.userID
-                          join studentuser in _context.Users on c.User.userID equals studentuser.userID
-                          join lp in _context.LessonPlans on c.LessonPlan.lessonPlanID equals lp.lessonPlanID
-                          where (c.User1.userID == studentID || c.User.userID == studentID) && c.Status.ToLower() == "pending" && c.ClassDate >= today && c.ClassDate <= SevenDaysFromNow
+                          join sb in _context.Subjects on c.Enrollment.Subject.subjectID equals sb.subjectID
+                          join tutoruser in _context.Users on c.Enrollment.User1.userID equals tutoruser.userID
+                          join studentuser in _context.Users on c.Enrollment.User.userID equals studentuser.userID
+                          where (c.Enrollment.User1.userID == studentID || c.Enrollment.User.userID == studentID) && c.Status.ToLower() == "pending" && c.ClassDate >= today && c.ClassDate <= SevenDaysFromNow
                           select new
                           {
-                              c.ClassID,
+                              c.TimeTableid,
                               studentname = studentuser.name,
                               tutorProfileImage = tutoruser.profile,
                               tutorName = tutoruser.name,
@@ -225,7 +222,6 @@ namespace webapi.Controllers.Classes
                               d.dayName,
                               s.startTime,
                               s.endTime,
-                              lp.lessonName,
                               c.ClassDate,
                               c.Status
                           })
@@ -235,10 +231,8 @@ namespace webapi.Controllers.Classes
                 DateTime utcStart = DateTime.SpecifyKind(t.ClassDate.Date.Add(t.startTime), DateTimeKind.Utc);
                 DateTime utcEnd = DateTime.SpecifyKind(t.ClassDate.Date.Add(t.endTime), DateTimeKind.Utc);
 
-                // Pakistan Time mein convert karein
                 DateTime localStart = TimeZoneInfo.ConvertTimeFromUtc(utcStart, userTimeZone);
                 DateTime localEnd = TimeZoneInfo.ConvertTimeFromUtc(utcEnd, userTimeZone);
-                // Ab check karein ke kya ye "Local Time" ke mutabiq agle 7 din mein hai
                 DateTime localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, userTimeZone);
                 DateTime localLimit = localNow.AddDays(7);
                 return localEnd > localNow && localStart <= localLimit;
@@ -249,113 +243,6 @@ namespace webapi.Controllers.Classes
                 data = filteredData,
                 totalClasses = filteredData.Count(),
                 message = "Data Collected successfully",
-            });
-        }
-
-
-        [HttpGet]
-        public HttpResponseMessage getClassDataByUsingClassID(int ClassID)
-        {
-            var lessonPlanID = _context.TimeTables
-                .Where(c => c.ClassID == ClassID)
-                .Select(c => c.LessonPlan.lessonPlanID)
-                .FirstOrDefault();
-            var lesson = (from lp in _context.LessonPlans
-                          join l in _context.Lessons on lp.lessonPlanID equals l.LessonPlan.lessonPlanID
-                          join q in _context.Qurans on l.Quran.ID equals q.ID
-                          where lp.lessonPlanID == lessonPlanID
-                          select new { q.ID, q.AyahText }).ToList();
-            var surahData = (from c in _context.TimeTables
-                             join s in _context.surahs on c.Surahid equals s.Id
-                             where c.ClassID == ClassID
-                             select new { surahId = c.Surahid, surahName = s.surah_Urdu_Names, surahEnglishName = s.surah_names }).FirstOrDefault();
-            var lessonName = (from lp in _context.LessonPlans
-                              join l in _context.Lessons on lp.lessonPlanID equals l.LessonPlan.lessonPlanID
-                              join q in _context.Qurans on l.Quran.ID equals q.ID
-                              where lp.lessonPlanID == lessonPlanID
-                              select l.LessonPlan.lessonName).FirstOrDefault();
-
-            var result = new
-            {
-                lessonName = lessonName,
-                surahData = surahData,
-                lessondata = lesson
-            };
-            return Request.CreateResponse(HttpStatusCode.OK, result);
-        }
-
-        [HttpGet]
-        public HttpResponseMessage getLessons(int ClassID)
-        {
-            var lessonPlanID = _context.TimeTables
-                .Where(c => c.ClassID == ClassID)
-                .Select(c => c.LessonPlan.lessonPlanID)
-                .FirstOrDefault();
-
-            if (lessonPlanID == 0)
-            {
-                return Request.CreateResponse(HttpStatusCode.NotFound, new
-                {
-                    success = false,
-                    message = "Lesson plan not found"
-                });
-            }
-
-            // Step 1: Get lessons + surah info first
-            var lessons = _context.Lessons
-                .Where(l => l.LessonPlan.lessonPlanID == lessonPlanID)
-                .Select(l => new
-                {
-                    lessonPlanID = l.LessonPlan.lessonPlanID,
-                    lessonName = l.LessonPlan.lessonName,
-                    surahId = l.surah.Id,
-                    surahName = l.surah.surah_names
-                }).Distinct()
-                .ToList();
-
-            var result = lessons.Select(l => new
-            {
-                l.lessonPlanID,
-                l.lessonName,
-                l.surahName,
-                ayats = _context.Qurans
-                    .Where(q => q.surah.Id == l.surahId)
-                    .Select(q => new
-                    {
-                        ayatId = q.ID,
-                        ayat = q.AyahText
-                    }).Distinct()
-                    .ToList()
-            }).Distinct().ToList();
-
-            return Request.CreateResponse(HttpStatusCode.OK, new
-            {
-                success = true,
-                data = result,
-                message = "Data Collected successfully"
-            });
-        }
-        [HttpPost]
-        public HttpResponseMessage MissedClasses(int userID)
-        {
-            var currentDate = DateTime.UtcNow.Date;
-
-            var classes = _context.TimeTables
-                .Where(T => T.ClassDate < currentDate
-                       && T.Status.ToLower() == "pending"
-                       && (T.User.userID == userID || T.User1.userID == userID))
-                .ToList();
-
-            foreach (var item in classes)
-            {
-                item.Status = "missed";
-            }
-
-            _context.SaveChanges();
-
-            return Request.CreateResponse(HttpStatusCode.OK, new
-            {
-                totalResult = classes.Count
             });
         }
     }

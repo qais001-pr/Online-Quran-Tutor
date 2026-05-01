@@ -12,10 +12,12 @@ namespace webapi
     using System;
     using System.Collections.Generic;
     
-    public partial class Assignment
+    public partial class Progress
     {
-        public int assignmentid { get; set; }
-        public string assignmeent { get; set; }
+        public int progressid { get; set; }
+        public int startAyat { get; set; }
+        public int endAyat { get; set; }
+        public string notes { get; set; }
     
         public virtual TimeTable TimeTable { get; set; }
     }

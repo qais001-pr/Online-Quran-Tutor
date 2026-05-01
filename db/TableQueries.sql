@@ -111,6 +111,18 @@ CREATE TABLE StudentTutorRequests (
 );
 
 
+
+create Table Enrollment (
+enrollmentid int primary key identity(1,1),
+studentid int,
+tutorid int,
+subjectid int,
+enrollment_status varchar(20) not null DEFAULT 'Active',
+foreign key (studentid) references Users(userid),
+foreign key (tutorid) references Users(userid),
+foreign key (subjectid) references Subjects(subjectid))
+
+
 -- Surahs
 CREATE TABLE Surahs (
     id INT IDENTITY(1,1) PRIMARY KEY,

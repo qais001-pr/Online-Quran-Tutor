@@ -1,0 +1,132 @@
+import { StyleSheet, Platform, StatusBar } from "react-native";
+
+import Colors from '../../../theme/Colors'
+export const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#F1F5F9', // Modern subtle blue-gray background
+    },
+    headerCurve: {
+        position: 'absolute',
+        top: 0,
+        height: 200,
+        width: '100%',
+        backgroundColor: Colors.header || '#045e43',
+        borderBottomLeftRadius: 40,
+        borderBottomRightRadius: 40,
+    },
+    headerContent: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight + 10 : 50,
+        paddingBottom: 20,
+    },
+    headerTitle: {
+        color: 'white',
+        fontSize: 22,
+        fontWeight: '700',
+    },
+    headerCircleBtn: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    imageSection: {
+        alignItems: 'center',
+        marginTop: 10,
+        marginBottom: 30,
+    },
+    imageWrapper: {
+        width: 150,
+        height: 150,
+        borderRadius: 75,
+        borderWidth: 5,
+        borderColor: 'white',
+        elevation: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
+    },
+    profileImage: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 75,
+    },
+    noImage: {
+        backgroundColor: '#CBD5E1',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    noImageText: {
+        fontSize: 50,
+        color: 'white',
+        fontWeight: 'bold',
+    },
+    cameraBtn: {
+        position: 'absolute',
+        bottom: 0,
+        right: 5,
+        backgroundColor: Colors.header || '#045e43',
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 3,
+        borderColor: 'white',
+    },
+    userName: {
+        fontSize: 24,
+        fontWeight: '800',
+        color: '#1E293B',
+        marginTop: 15,
+    },
+    userEmail: {
+        fontSize: 14,
+        color: '#64748B',
+        marginTop: 4,
+    },
+    menuCard: {
+        marginHorizontal: 20,
+        borderRadius: 20,
+        paddingVertical: 10,
+
+    },
+    cardLabel: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#94A3B8',
+        marginLeft: 20,
+        marginTop: 10,
+        marginBottom: 5,
+        textTransform: 'uppercase',
+    },
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 15,
+        paddingHorizontal: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F1F5F9',
+    },
+    rowIconContainer: {
+        width: 38,
+        height: 38,
+        borderRadius: 10,
+        backgroundColor: '#F1F5F9',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 15,
+    },
+    rowText: {
+        flex: 1,
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#334155',
+    },
+});

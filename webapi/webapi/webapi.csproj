@@ -126,8 +126,10 @@
     <Compile Include="Controllers\Class\ClassesController.cs" />
     <Compile Include="Controllers\Dashboard\DashboardController.cs" />
     <Compile Include="Controllers\Dashboard\StudentDashboardController.cs" />
+    <Compile Include="Controllers\Enrollment\EnrollmentController.cs" />
     <Compile Include="Controllers\Guardian\GuardianController.cs" />
     <Compile Include="Controllers\Profile\ProfileController.cs" />
+    <Compile Include="Controllers\Progress\ProgressController.cs" />
     <Compile Include="Controllers\Quran\QuranController.cs" />
     <Compile Include="Controllers\Request\RequestsController.cs" />
     <Compile Include="Controllers\Reviews\ReviewsController.cs" />
@@ -174,6 +176,7 @@
     <Compile Include="Models\Class\AcceptRequestDTO.cs" />
     <Compile Include="Models\Class\ClassesDTO.cs" />
     <Compile Include="Models\Guardian\GuardianDTO.cs" />
+    <Compile Include="Models\Progress\ProgressDTO.cs" />
     <Compile Include="Models\Request\RequestDTO.cs" />
     <Compile Include="Models\Reviews\ReviewDTO.cs" />
     <Compile Include="Models\Slot\DaySlotsDTO.cs" />

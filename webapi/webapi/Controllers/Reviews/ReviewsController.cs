@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using webapi.Models.Reviews;
@@ -25,16 +24,6 @@ namespace webapi.Controllers.Reviews
             };
             var classData = _context.TimeTables.Where(c => c.TimeTableid == review.classID).FirstOrDefault();
             classData.Status = "completed";
-            int slotID = classData.Slot.slotID;
-            int dayID = classData.Day.dayID;
-            var turorID = classData.Enrollment.User1.userID;
-            var tutorSlot = _context.TutorSlots.Where(c => c.Slot.slotID == slotID && c.Day.dayID == dayID && c.User.userID == turorID).FirstOrDefault();
-            if (tutorSlot == null)
-            {
-                return Request.CreateResponse(HttpStatusCode.NotFound, "TutorSlot not found");
-            }
-
-            tutorSlot.classStatus = "pending";
             _context.Reviews.Add(re);
             _context.SaveChanges();
             return Request.CreateResponse(System.Net.HttpStatusCode.OK, "Review Submit Successfully");

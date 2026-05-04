@@ -51,7 +51,7 @@ export default function Class({ navigation, route }) {
             return formattedTime;
 
         } catch (error) {
-            return utcTimeValue.split(':')[0] + utcTimeValue.split(':')[1]; // Fallback
+            return utcTimeValue.split(':')[0] + utcTimeValue.split(':')[1];
         }
     }, [user?.timezone]);
 
@@ -251,12 +251,12 @@ export default function Class({ navigation, route }) {
                 startIndex,
                 endIndex, } = data;
             console.log('Assignment', assignmentText)
-            const response = await fetch(Base_URL + `Reviews/gaveAssignment`, {
+            const response = await fetch(Base_URL + `Progress/CompleteClass`, {
                 method: 'POST',
                 body: JSON.stringify({
                     ClassID: ClassID,
                     corrections: correction,
-                    note: assignmentText,
+                    notes: assignmentText,
                     startAyat: startIndex,
                     endAyat: endIndex
                 }),
@@ -265,7 +265,7 @@ export default function Class({ navigation, route }) {
             if (response.ok) {
                 const result = await response.json()
                 console.log(result);
-                ToastAndroid.show("Assignment Assign Successfully", 3000)
+                ToastAndroid.show(`${result?.message || ''}`, 5000);
             }
         } catch (error) {
             console.log(error)

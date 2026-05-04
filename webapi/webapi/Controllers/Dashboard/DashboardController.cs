@@ -22,7 +22,6 @@ namespace webapi.Controllers.Dashboard
             var studentList = new List<object>();
             foreach (var student in Student)
             {
-
                 var studentId = student.Key;
                 var studentName = _context.Users.Where(u => u.userID == studentId).Select(u => u.name).FirstOrDefault();
                 var studentProfile = _context.Users.Where(u => u.userID == studentId).Select(u => u.profile).FirstOrDefault();
@@ -56,39 +55,6 @@ namespace webapi.Controllers.Dashboard
             DateTime nowInUserZone = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, userTimeZone);
             DateTime todayInUserZone = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, userTimeZone).Date;
             DateTime MonthInUserZone = todayInUserZone.AddMonths(1);
-
-            var pendingClasses = (from c in TutorClasses
-                                  where c.Status.ToLower() == "pending"
-                                  where c.ClassDate.Month == todayInUserZone.Month
-                                  orderby c.ClassDate, c.Slot.startTime
-                                  select new
-                                  {
-                                      classId = c.TimeTableid,
-                                  }).Count();
-            var completedClasses = (from c in TutorClasses
-                                    where c.Status.ToLower() == "completed"
-                                    where c.ClassDate.Month == todayInUserZone.Month
-                                    orderby c.ClassDate, c.Slot.startTime
-                                    select new
-                                    {
-                                        classId = c.TimeTableid,
-                                    }).Count();
-            var MissedClasses = (from c in TutorClasses
-                                 where c.Status.ToLower() == "missed"
-                                 where c.ClassDate.Month == todayInUserZone.Month
-                                 orderby c.ClassDate, c.Slot.startTime
-                                 select new
-                                 {
-                                     classId = c.TimeTableid,
-                                 }).Count();
-            var totalClasses = (from c in TutorClasses
-                                where c.ClassDate.Month == todayInUserZone.Month
-                                orderby c.ClassDate, c.Slot.startTime
-                                select new
-                                {
-                                    classId = c.TimeTableid,
-                                }).Count();
-            decimal progress = totalClasses > 0 ? Math.Round((decimal)completedClasses / totalClasses * 100, 2) : 0;
             var todaysClasses = (from c in TutorClasses
                                  where c.Status.ToLower() != "completed"
                                  where c.ClassDate.Date == todayInUserZone
@@ -108,12 +74,13 @@ namespace webapi.Controllers.Dashboard
                                      studentName = c.Enrollment.User.name,
                                      studentProfile = c.Enrollment.User.profile,
                                      studentLocation = c.Enrollment.User.country,
+                                     subject = c.Enrollment.User.Subject.subjectName,
                                      startTime = c.Slot.startTime,
                                      endTime = c.Slot.endTime,
                                      ClassDate = c.ClassDate,
                                      classDate = c.ClassDate.ToLongDateString(),
                                      status = c.Status,
-                                 })
+                                 }).Take(1)
                                     .AsEnumerable()
                                     .ToList();
 
@@ -122,13 +89,6 @@ namespace webapi.Controllers.Dashboard
             {
                 todaysClasses = todaysClasses,
                 students = studentList,
-                monthlyStatistics = new
-                {
-                    pendingClasses,
-                    completedClasses,
-                    MissedClasses,
-                    progress
-                },
                 TotalStudents = Student.Count()
             });
         }

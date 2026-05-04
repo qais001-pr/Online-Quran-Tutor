@@ -58,98 +58,88 @@ export const styles = StyleSheet.create({
     dropdownSelected: { fontSize: 13, fontWeight: '600', color: '#37905f' },
     card: {
         backgroundColor: '#FFF',
-        marginHorizontal: 20,
-        marginBottom: 12,
-        borderRadius: 16,
-        padding: 16,
-        elevation: 3,
+        padding: 14,
+        marginVertical: 8,
+        marginHorizontal: 12,
+        borderRadius: 12,
+
+        // Shadow (iOS)
         shadowColor: '#000',
+        shadowOpacity: 0.08,
+        shadowRadius: 6,
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
+
+        // Elevation (Android)
+        elevation: 3,
     },
-    cardHeader: {
+
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+
+    userRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 12,
+        gap: 10,
     },
+
     avatar: {
         width: 44,
         height: 44,
-        borderRadius: 12,
+        borderRadius: 22,
+        backgroundColor: '#EEE',
     },
-    headerInfo: {
-        flex: 1,
-        marginLeft: 12,
+
+    name: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#222',
     },
-    studentName: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: '#212529',
+
+    sub: {
+        fontSize: 12,
+        color: '#777',
+        marginTop: 2,
     },
-    statusBadge: {
-        alignSelf: 'flex-start',
+
+    status: {
+        fontSize: 11,
+        fontWeight: '600',
         paddingHorizontal: 8,
-        paddingVertical: 2,
+        paddingVertical: 3,
         borderRadius: 6,
+        overflow: 'hidden',
+    },
+
+    completed: {
+        backgroundColor: '#E6F4EA',
+        color: '#2E7D32',
+    },
+
+    pending: {
+        backgroundColor: '#FFF4E5',
+        color: '#EF6C00',
+    },
+
+    defaultStatus: {
+        backgroundColor: '#EEE',
+        color: '#555',
+    },
+
+    text: {
+        fontSize: 13,
+        color: '#444',
         marginTop: 4,
     },
-    completedBadge: { backgroundColor: '#E8F5E9' },
-    missedBadge: { backgroundColor: '#FFEBEE' },
-    statusText: { fontSize: 10, fontWeight: '800' },
-    completedText: { color: '#2E7D32' },
-    missedText: { color: '#C62828' },
-    ratingBox: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#FFFBE6',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#FFE58F',
-    },
-    ratingText: {
-        marginLeft: 4,
-        fontSize: 12,
-        fontWeight: '700',
-        color: '#876800',
-    },
-    detailsContainer: {
-        flexDirection: 'row',
-        backgroundColor: '#F8F9FA',
-        padding: 10,
-        borderRadius: 10,
-        justifyContent: 'space-between',
-    },
-    detailRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    detailText: {
-        marginLeft: 6,
-        fontSize: 12,
-        color: '#495057',
-        fontWeight: '500',
-    },
-    footerSection: {
-        marginTop: 12,
-        borderTopWidth: 1,
-        borderTopColor: '#F1F3F5',
-        paddingTop: 10,
-    },
-    noteLine: {
-        flexDirection: 'row',
-        marginBottom: 4,
-    },
-    noteLabel: {
-        fontSize: 12,
-        fontWeight: '700',
-        color: '#6C757D',
-    },
-    noteText: {
-        fontSize: 12,
-        color: '#495057',
-        flex: 1,
+
+    note: {
+        fontSize: 13,
+        color: '#666',
+        marginTop: 4,
+        fontStyle: 'italic',
     },
     emptyState: {
         alignItems: 'center',

@@ -71,7 +71,6 @@ export const externalStyles = StyleSheet.create({
         fontWeight: '500',
         color: 'white',
         textAlign: 'left',
-        fontFamily: 'QuranFonts'
     },
 
     statusBadge: {

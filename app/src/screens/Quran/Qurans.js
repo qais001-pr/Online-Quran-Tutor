@@ -6,7 +6,6 @@ import {
     StyleSheet,
     ActivityIndicator,
     Pressable,
-    TextInput,
     Animated,
     RefreshControl,
     Platform,

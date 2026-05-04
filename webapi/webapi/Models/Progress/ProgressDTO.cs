@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-
-namespace webapi.Models.Progress
+﻿namespace webapi.Models.Progress
 {
     public class ProgressDTO
     {

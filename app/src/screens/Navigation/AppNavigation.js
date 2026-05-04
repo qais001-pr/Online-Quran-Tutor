@@ -28,6 +28,7 @@ import ChildAccounts from '../Guardian/Stack/ChildAccounts'
 
 // Quran
 import Juz from '../Quran/Juz';
+import JuzDisplay from '../Quran/JuzDisplay'
 import Surahs from '../Quran/Surahs'
 import Qurans from '../Quran/Qurans'
 import SurahsDisplay from '../Quran/SurahsDisplay'
@@ -68,6 +69,7 @@ export default function AppNavigation() {
 
                 {/* Quran */}
                 <Stack.Screen name="Juz" component={Juz} />
+                <Stack.Screen name="JuzDisplay" component={JuzDisplay} />
                 <Stack.Screen name="Surahs" component={Surahs} />
                 <Stack.Screen name="Qurans" component={Qurans} />
                 <Stack.Screen name="SurahsDisplay" component={SurahsDisplay} />

@@ -11,7 +11,7 @@ import Colors from '../../../theme/Colors';
 const Header = ({ headerdata }) => {
     const navigation = useNavigation()
     const { user } = useAuth()
-
+    console.log(headerdata);
     return (
         <SafeAreaView style={styles.headerContainer}>
 
@@ -44,22 +44,13 @@ const Header = ({ headerdata }) => {
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                     <View>
                         <Text style={styles.progressTitle}>
-                            {headerdata?.upcomingClass?.surahName}
+                            {headerdata?.surah_Urdu_Names}
                         </Text>
-                        {/* <View style={{ flexDirection: 'row' }}>
-                            <Text style={styles.lessonText}>
-                                1
-                                /
-                            </Text>
-
-                            <Text style={styles.lessonText}>
-                                29
-                                Lessons
-                            </Text>
-                        </View> */}
                     </View>
-
-                    <Text style={styles.progressSubtitle}>{headerdata?.classStatistics?.progressPercentage || 0}%</Text>
+                    {/* "totalAyats": 287,
+                    "completedAyats": 4,
+                    "ayatProgress": 1.39 */}
+                    <Text style={styles.progressSubtitle}>{headerdata?.ayatProgress || 0}%</Text>
                 </View>
 
                 <View style={styles.progressBarBackground}>
@@ -67,7 +58,7 @@ const Header = ({ headerdata }) => {
                         style={[
                             styles.progressBarFill,
                             {
-                                width: `${headerdata?.classStatistics?.progressPercentage || 0}%`
+                                width: `${headerdata?.ayatProgress || 0}%`
                             }
                         ]}
                     />
@@ -83,7 +74,7 @@ export default function StudentHomeDashboard() {
 
 
     const onRefresh = () => {
-        setRefreshing(true); 
+        setRefreshing(true);
         FetchData();
     };
     useFocusEffect(useCallback(() => {
@@ -118,27 +109,17 @@ export default function StudentHomeDashboard() {
     }, [FetchData])
     const convertUtcToUserTime = (utcTimeValue) => {
         if (!utcTimeValue) return "";
-
-        // Use user timezone or fallback to system default
         const userTimeZone = user?.timezone;
 
         try {
-            // 1. Get today's date to create a full ISO string
             const today = new Date().toISOString().split('T')[0];
-
-            // 2. IMPORTANT: Append 'Z' to tell JS this string is strictly UTC
-            // Format: 2026-04-13T11:00:00Z
             const utcDate = new Date(`${today}T${utcTimeValue}Z`);
-
             const formatter = new Intl.DateTimeFormat('en-US', {
                 timeZone: userTimeZone,
                 hour: '2-digit',
                 minute: '2-digit',
-                // second: '2-digit',
                 hour12: false
             });
-
-            // 3. Format and return the local hour
             const formattedTime = formatter.format(utcDate);
             return formattedTime;
 
@@ -148,9 +129,8 @@ export default function StudentHomeDashboard() {
         }
     };
     let checkDateAndTime = ({ i }) => {
-        console.log(i);
         const now = new Date();
-        const classDate = new Date(i.scheduledDate);
+        const classDate = new Date(i.ClassDate);
         const isSameDate =
             now.getFullYear() === classDate.getFullYear() &&
             now.getMonth() === classDate.getMonth() &&
@@ -160,7 +140,7 @@ export default function StudentHomeDashboard() {
         }
 
         const currentHour = now.getHours();
-          const utcTimeStart = convertUtcToUserTime(i.startTime)
+        const utcTimeStart = convertUtcToUserTime(i.startTime)
         const utcTimeEnd = convertUtcToUserTime(i.endTime)
         const startHour = parseInt(utcTimeStart.split(':')[0], 10);
         const endHour = parseInt(utcTimeEnd.split(':')[0], 10);
@@ -172,111 +152,73 @@ export default function StudentHomeDashboard() {
         }
         return true;
     };
+    const upcoming = data?.upcomingClass?.[0];
     return (
         <View style={{ flex: 1 }}>
-            <Header headerdata={data} />
+            <Header headerdata={data?.surahAyat || null} />
             <ScrollView style={{ flex: 1, padding: 10, paddingTop: 10 }} refreshControl={
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }>
-                <Text style={[styles.nameText, { color: Colors.backgroundColor }]}>Classes</Text>
-                <View style={styles.statsGrid}>
-                    <View style={styles.statBox}>
-                        <Icon name="book-outline" size={22} color="#4CAF50" />
-                        <Text style={styles.statNumber}>
-                            {data?.classStatistics?.totalClasses || 0}
-                        </Text>
-                        <Text style={styles.statLabel}>Total</Text>
-                    </View>
-
-                    <View style={styles.statBox}>
-                        <Icon name="checkmark-circle-outline" size={22} color="#2196F3" />
-                        <Text style={styles.statNumber}>
-                            {data?.classStatistics?.completedClasses || 0}
-                        </Text>
-                        <Text style={styles.statLabel}>Completed</Text>
-                    </View>
-
-                    <View style={styles.statBox}>
-                        <Icon name="time-outline" size={22} color="#FF9800" />
-                        <Text style={styles.statNumber}>
-                            {data?.classStatistics?.pendingClasses || 0}
-                        </Text>
-                        <Text style={styles.statLabel}>Pending</Text>
-                    </View>
-                </View>
-
-
                 {/* Upcoming Class Card */}
-                {data?.upcomingClass && (
+                {upcoming && (
                     <View style={styles.upcomingCard}>
 
-                        {/* Header Row */}
+                        {/* Header */}
                         <View style={styles.cardHeader}>
-                            <Text style={styles.upcomingTitle}>Upcoming Class</Text>
+                            <Text style={styles.cardTitle}>Upcoming Class</Text>
 
-                            <View style={styles.statusBadgeCard}>
-                                <Text style={styles.statusTextCard}>
-                                    {data?.upcomingClass?.status}
+                            <View style={[
+                                styles.badge,
+                                upcoming?.status === 'pending' ? styles.pending : styles.defaultBadge
+                            ]}>
+                                <Text style={styles.badgeText}>
+                                    {upcoming?.status?.toUpperCase()}
                                 </Text>
                             </View>
                         </View>
 
-                        {/* Main Content */}
-                        <View style={styles.upcomingRow}>
-
-                            {/* Instructor Image */}
+                        {/* Student Info */}
+                        <View style={styles.row}>
                             <Image
-                                source={{
-                                    uri: `${Image_URL}${data?.upcomingClass?.instructorProfile}`
-                                }}
-                                style={styles.instructorImage}
+                                source={{ uri: Image_URL + (upcoming?.studentProfile || '') }}
+                                style={styles.avatar}
                             />
 
-                            {/* Info Section */}
                             <View style={{ flex: 1 }}>
-
-                                <Text style={styles.instructorName}>
-                                    {data?.upcomingClass?.instructorName}
-                                </Text>
-
-                                {/* Lesson */}
-                                <View style={styles.infoRow}>
-                                    <Text style={styles.urduText}>
-                                        {data?.upcomingClass?.surahName}
-                                    </Text>
-                                    <Text style={styles.lessonText}>
-                                        {data?.upcomingClass?.lessonName.split('-')[1]}
-                                    </Text>
-                                </View>
-                                <View style={styles.infoRow}>
-                                    <Icon name="calendar-outline" size={14} color="#777" />
-                                    <Text style={styles.dateText}>
-                                        {data?.upcomingClass?.scheduledDate}
-                                    </Text>
-                                </View>
-                                {/* Time */}
-                                <View style={styles.infoRow}>
-                                    <Icon name="time" size={18} color="#097343" />
-                                    <Text style={styles.lessonText}>
-                                        {convertUtcToUserTime(data?.upcomingClass?.startTime)}  -   {convertUtcToUserTime(data?.upcomingClass?.endTime)}
-                                    </Text>
-                                </View>
-                                {/* Urdu */}
+                                <Text style={styles.name}>{upcoming?.studentName}</Text>
+                                <Text style={styles.sub}>{upcoming?.subject}</Text>
                             </View>
                         </View>
-                        <TouchableOpacity
-                            disabled={checkDateAndTime({ i: data?.upcomingClass })}
-                            onPress={() => navigation.navigate('Class', { classID: data?.upcomingClass?.classId })}
 
+                        {/* Surah */}
+                        <Text style={styles.surah}>{upcoming?.surahName}</Text>
+
+                        {/* Date & Time */}
+                        <View style={styles.infoRow}>
+                            <Icon name="calendar-outline" size={14} color="#666" />
+                            <Text style={styles.infoText}>{upcoming?.scheduledDate}</Text>
+                        </View>
+
+                        <View style={styles.infoRow}>
+                            <Icon name="time-outline" size={14} color="#666" />
+                            <Text style={styles.infoText}>
+                                {convertUtcToUserTime(upcoming?.startTime)} - {convertUtcToUserTime(upcoming?.endTime)}
+                            </Text>
+                        </View>
+
+                        {/* Button */}
+                        <TouchableOpacity
+                            disabled={checkDateAndTime({ i: upcoming })}
+                            onPress={() => navigation.navigate('Class', { classID: upcoming?.classId })}
                             style={
-                                checkDateAndTime({ i: data?.upcomingClass }) ? styles.joinBtnDisabled
-                                    : styles.joinBtn}
+                                checkDateAndTime({ i: upcoming })
+                                    ? styles.btnDisabled
+                                    : styles.btn
+                            }
                         >
                             <Icon name="videocam-outline" size={16} color="#fff" />
-                            <Text style={styles.joinText}>
-                                {checkDateAndTime({ i: data?.upcomingClass }) ?
-                                    'Scheduled' : 'Join'
-                                }
+                            <Text style={styles.btnText}>
+                                {checkDateAndTime({ i: upcoming }) ? 'Scheduled' : 'Join'}
                             </Text>
                         </TouchableOpacity>
                     </View>
@@ -301,7 +243,7 @@ export default function StudentHomeDashboard() {
                     <TouchableOpacity
                         activeOpacity={0.85}
                         style={styles.card}
-                        onPress={() => navigation.navigate('Qurans')}
+                        onPress={() => navigation.navigate('Juz')}
                     >
                         <View style={styles.iconContainer}>
                             <Icon name="library-outline" size={12} color="#fff" />

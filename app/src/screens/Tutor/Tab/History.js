@@ -82,63 +82,44 @@ export default function History() {
             return matchStatus && matchDate;
         });
     }, [data, status, selectedDate, date]);
-    const renderHistoryItem = ({ item }) => {
-        const isCompleted = item?.Status?.toLowerCase() === 'completed';
+    const renderClassItem = ({ item }) => {
+        if (!item) return null;
 
         return (
             <View style={styles.card}>
-                {/* Top Section */}
-                <View style={styles.cardHeader}>
-                    <Image
-                        source={{ uri: Image_URL + item?.profile }}
-                        style={styles.avatar}
-                    />
-                    <View style={styles.headerInfo}>
-                        <Text style={styles.studentName}>{item?.name || 'Student'}</Text>
-                        <View style={[styles.statusBadge, isCompleted ? styles.completedBadge : styles.missedBadge]}>
-                            <Text style={[styles.statusText, isCompleted ? styles.completedText : styles.missedText]}>
-                                {item?.Status?.toUpperCase()}
+
+                {/* Header */}
+                <View style={styles.header}>
+                    <View style={styles.userRow}>
+                        <Image
+                            source={{ uri: Image_URL + (item?.StudentImage || '') }}
+                            style={styles.avatar}
+                        />
+                        <View>
+                            <Text style={styles.name}>{item?.StudentName || 'Unknown'}</Text>
+                            <Text style={styles.sub}>
+                                {item?.ClassDate?.split('T')[0]} • {convertUtcToUserTime(item?.StartTime)} - {convertUtcToUserTime(item?.EndTime)}
                             </Text>
                         </View>
                     </View>
-                    {isCompleted && item?.rating > 0 && (
-                        <View style={styles.ratingBox}>
-                            <Icon name="star" size={14} color="#FFB800" />
-                            <Text style={styles.ratingText}>{item?.rating}</Text>
-                        </View>
-                    )}
+
+                    <Text style={[styles.status, styles[item?.Status?.toLowerCase()] || styles.defaultStatus]}>
+                        {item?.Status?.toUpperCase()}
+                    </Text>
                 </View>
 
-                {/* Middle Info Section */}
-                <View style={styles.detailsContainer}>
-                    <View style={styles.detailRow}>
-                        <Icon name="calendar-range" size={16} color="#666" />
-                        <Text style={styles.detailText}>{item?.ClassDate?.split('T')[0]}</Text>
-                    </View>
-                    <View style={styles.detailRow}>
-                        <Icon name="clock-outline" size={16} color="#666" />
-                        <Text style={styles.detailText}>
-                            {convertUtcToUserTime(item?.startTime)} - {convertUtcToUserTime(item?.endTime)}
+                {/* Body */}
+                <Text style={styles.text}>
+                    Subject : {item?.Subject} • {item?.DayName} •  Ayat: {item?.startAyat ?? 0}-{item?.endAyat ?? 0}
+                </Text>
+
+                {item?.Status === 'completed' && (
+                    <>
+                        <Text style={styles.text}>Rating : {item?.Rating ?? 0} ⭐</Text>
+                        <Text style={styles.note} numberOfLines={2}>
+                            {item?.notes || 'No notes'}
                         </Text>
-                    </View>
-                </View>
-
-                {/* Footer Section (Comments/Assignments) */}
-                {(item?.Comment || item?.assignment) && (
-                    <View style={styles.footerSection}>
-                        {item?.Comment && (
-                            <View style={styles.noteLine}>
-                                <Text style={styles.noteLabel}>Feedback: </Text>
-                                <Text style={styles.noteText} numberOfLines={1}>{item.Comment}</Text>
-                            </View>
-                        )}
-                        {item?.assignment && (
-                            <View style={styles.noteLine}>
-                                <Text style={styles.noteLabel}>Task: </Text>
-                                <Text style={styles.noteText} numberOfLines={1}>{item.assignment}</Text>
-                            </View>
-                        )}
-                    </View>
+                    </>
                 )}
             </View>
         );
@@ -158,7 +139,7 @@ export default function History() {
                 </View>
 
                 {/* Filters Row */}
-                {/* <View style={styles.filterRow}>
+                <View style={styles.filterRow}>
                     <TouchableOpacity style={styles.datePickerBtn} onPress={() => setOpen(true)}>
                         <Icon name="calendar-search" size={18} color="#37905f" />
                         <Text style={styles.dateText}>
@@ -180,13 +161,13 @@ export default function History() {
                             <Icon name="filter-variant" size={18} color="#37905f" style={{ marginRight: 5 }} />
                         )}
                     />
-                </View> */}
+                </View>
             </View>
 
             <FlatList
                 data={filteredList}
                 keyExtractor={(item) => item?.ClassID.toString()}
-                renderItem={renderHistoryItem}
+                renderItem={renderClassItem}
                 contentContainerStyle={{ paddingBottom: 100 }}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
                 ListEmptyComponent={

@@ -232,31 +232,48 @@ namespace webapi.Controllers.Tutor
         public HttpResponseMessage getHistoryData(int userID)
         {
             var currentMonth = DateTime.Now.Month;
-            var totalMissedClasses = _context.TimeTables.Where(tt => tt.Status == "missed" && tt.ClassDate.Month == currentMonth && (tt.Enrollment.User.userID == userID || tt.Enrollment.User1.userID == userID)).Count();
-            var totalCompletedClasses = _context.TimeTables.Where(tt => tt.Status == "completed" && tt.ClassDate.Month == currentMonth && (tt.Enrollment.User.userID == userID || tt.Enrollment.User1.userID == userID)).Count();
-            var result = (from tt in _context.TimeTables
-                          where (tt.Enrollment.User1.userID == userID || tt.Enrollment.User.userID == userID) && tt.ClassDate.Month == currentMonth && (tt.Status == "completed" || tt.Status == "missed")
-                          select new
-                          {
-                              tt.TimeTableid,
-                              tt.ClassDate,
-                              tt.Slot.startTime,
-                              tt.Slot.endTime,
-                              tt.Enrollment.User.profile,
-                              tt.Enrollment.User.name,
-                              tt.Status,
-                              tt.Corrections,
-                          }).OrderBy(c => c.ClassDate)
-                          .ThenBy(c => c.startTime)
-                          .Distinct().ToList();
+            var result = (
+                from tt in _context.TimeTables
+                where tt.Enrollment.User1.userID == userID && tt.Status == "completed" && tt.ClassDate.Month == currentMonth
+                select new
+                {
+                    ClassID = tt.TimeTableid,
+                    StudentID = tt.Enrollment.User.userID,
+                    Subject = tt.Enrollment.User.Subject.subjectName,
+                    StudentName = tt.Enrollment.User.name,
+                    TutorName = tt.Enrollment.User1.name,
+                    TutorImage = tt.Enrollment.User1.profile,
+                    StudentImage = tt.Enrollment.User.profile,
+                    ClassDate = tt.ClassDate,
+                    SlotID = tt.Slot.slotID,
+                    DayName = tt.Day.dayName,
+                    DayID = tt.Day.dayID,
+                    StartTime = tt.Slot.startTime,
+                    EndTime = tt.Slot.endTime,
+                    Status = tt.Status,
+                    startAyat = (from p in _context.Progresses
+                                 where p.TimeTable.TimeTableid == tt.TimeTableid
+                                 select p.startAyat).FirstOrDefault(),
+                    endAyat = (from p in _context.Progresses
+                               where p.TimeTable.TimeTableid == tt.TimeTableid
+                               select p.endAyat).FirstOrDefault(),
+                    notes = (from p in _context.Progresses
+                             where p.TimeTable.TimeTableid == tt.TimeTableid
+                             select p.notes).FirstOrDefault(),
+                    StudentFeedback = (from r in _context.Reviews
+                                       where r.TimeTable.TimeTableid == tt.TimeTableid
+                                       select r.Comment).FirstOrDefault(),
+                    Rating = (from r in _context.Reviews
+                              where r.TimeTable.TimeTableid == tt.TimeTableid
+                              select r.Rating).FirstOrDefault(),
+                })
+                .ToList();
             return Request.CreateResponse(HttpStatusCode.OK, new
             {
                 success = true,
                 message = "History data retrieved successfully.",
                 data = result,
                 totalClasses = result.Count(),
-                totalMissedClasses = totalMissedClasses,
-                totalCompletedClasses = totalCompletedClasses,
             });
         }
     }

@@ -111,10 +111,6 @@ export default function HomeDashboard() {
                 keyExtractor={(item) => item.classId.toString()}
                 contentContainerStyle={externalStyles.horizontalList}
                 renderItem={({ item }) => {
-                    // Safety check for split to prevent crashes if lessonName is missing/malformed
-                    const lessonPart = item?.lessonName?.includes('-')
-                        ? item.lessonName.split('-')[1]
-                        : item?.lessonName;
                     const Check = checkDateAndTime({ i: item })
                     return (
                         <View style={externalStyles.classCard}>
@@ -133,7 +129,7 @@ export default function HomeDashboard() {
 
                             {/* Lesson Info */}
                             <Text style={externalStyles.lessonAndSurahText}>
-                                {item?.surahName}  -  {lessonPart}
+                                {item?.surahName || ''}  -  {item?.subject || ''}
                             </Text>
 
                             {/* Time Info */}
@@ -174,31 +170,31 @@ export default function HomeDashboard() {
         </View>
     );
 
-    // Statistics Grid
-    const RenderStats = () => {
-        const stats = dashboardData?.monthlyStatistics;
-        return (
-            <View style={externalStyles.statsContainer}>
-                <Text style={externalStyles.subSectionTitle}>Monthly Performance</Text>
-                <View style={externalStyles.statsGrid}>
-                    <StatBox label="Pending" value={stats?.pendingClasses || 0} color="#F5A623" />
-                    <StatBox label="Completed" value={stats?.completedClasses || 0} color="#7ED321" />
-                    <StatBox label="Progress" value={`${stats?.progress || 0}%`} color="#9013FE" />
-                </View>
-            </View>
-        );
-    };
+    // // Statistics Grid
+    // const RenderStats = () => {
+    //     const stats = dashboardData?.monthlyStatistics;
+    //     return (
+    //         <View style={externalStyles.statsContainer}>
+    //             <Text style={externalStyles.subSectionTitle}>Monthly Performance</Text>
+    //             <View style={externalStyles.statsGrid}>
+    //                 <StatBox label="Pending" value={stats?.pendingClasses || 0} color="#F5A623" />
+    //                 <StatBox label="Completed" value={stats?.completedClasses || 0} color="#7ED321" />
+    //                 <StatBox label="Progress" value={`${stats?.progress || 0}%`} color="#9013FE" />
+    //             </View>
+    //         </View>
+    //     );
+    // };
 
-    const StatBox = ({ label, value, color }) => (
-        <View style={[externalStyles.statBox, { borderBottomColor: color }]}>
-            <Text style={externalStyles.statLabel}>{label}</Text>
-            <Text style={externalStyles.statValue}>{value}</Text>
-        </View>
-    );
+    // const StatBox = ({ label, value, color }) => (
+    //     <View style={[externalStyles.statBox, { borderBottomColor: color }]}>
+    //         <Text style={externalStyles.statLabel}>{label}</Text>
+    //         <Text style={externalStyles.statValue}>{value}</Text>
+    //     </View>
+    // );
 
     const ListHeader = () => (
         <View>
-            <RenderStats />
+            {/* <RenderStats /> */}
             <RenderTodayClasses />
             <View style={externalStyles.studentListHeader}>
                 <Text style={externalStyles.sectionTitle}>My Students</Text>

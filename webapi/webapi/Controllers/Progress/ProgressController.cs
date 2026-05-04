@@ -4,8 +4,9 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using webapi.Models.Progress;
 
-namespace webapi.Controllers.Progress
+namespace webapi.Controllers.Progresses
 {
     public class ProgressController : ApiController
     {
@@ -23,13 +24,11 @@ namespace webapi.Controllers.Progress
             return date.AddDays(-diff).Date;
         }
         [HttpPost]
-        public HttpResponseMessage CompleteClass(int classId)
+        public HttpResponseMessage CompleteClass(ProgressDTO progress)
         {
             try
             {
-                var currentClass = _context.TimeTables
-                    .Include("Enrollment")
-                    .FirstOrDefault(c => c.TimeTableid == classId);
+                var currentClass = _context.TimeTables.Where(c => c.TimeTableid == progress.ClassID).FirstOrDefault();
 
                 if (currentClass == null)
                 {
@@ -38,11 +37,27 @@ namespace webapi.Controllers.Progress
                         message = "Class not found"
                     });
                 }
-                currentClass.Status = "Completed";
-                _context.SaveChanges();
 
+                currentClass.Status = "completed";
                 var enrollment = currentClass.Enrollment;
-
+                var tutorid = enrollment.User1.userID;
+                var slotid = currentClass.Slot.slotID;
+                var dayid = currentClass.Day.dayID;
+                var tutorSlot = _context.TutorSlots.Where(ts => ts.User.userID == tutorid
+                                                                && ts.Slot.slotID == slotid
+                                                                && ts.Day.dayID == dayid).FirstOrDefault();
+                tutorSlot.classStatus = "pending";
+                enrollment.currentayat = progress.endAyat;
+                currentClass.Corrections = progress.corrections;
+                var newProgress = new Progress
+                {
+                    TimeTable = currentClass,
+                    endAyat = progress.endAyat,
+                    startAyat = progress.startAyat,
+                    notes = progress.notes,
+                };
+                _context.Progresses.Add(newProgress);
+                _context.SaveChanges();
                 if (enrollment == null)
                 {
                     return Request.CreateResponse(HttpStatusCode.BadRequest, new
@@ -73,6 +88,8 @@ namespace webapi.Controllers.Progress
 
                 if (currentStart > totalVerses)
                 {
+                    enrollment.enrollment_status = "Completed";
+                    _context.SaveChanges();
                     return Request.CreateResponse(HttpStatusCode.OK, new
                     {
                         message = "All lessons completed"

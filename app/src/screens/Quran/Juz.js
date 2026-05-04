@@ -42,7 +42,8 @@ export default function Juz({ navigation }) {
     }, [fetchJuz]);
 
     const renderRow = ({ item }) => (
-        <Pressable style={styles.card}>
+        <Pressable style={styles.card}
+            onPress={() => navigation.navigate('JuzDisplay', { JuzID: item?.Juz_ID })}>
             {/* Juz Number Circle */}
             <View style={styles.juzBadge}>
                 <Text style={styles.juzNumber}>{item?.Juz_ID}</Text>

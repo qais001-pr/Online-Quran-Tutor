@@ -57,8 +57,10 @@ export default function History() {
         try {
             const today = new Date().toISOString().split('T')[0];
             const utcDate = new Date(`${today}T${utcTimeValue}Z`);
-            return utcDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', 
-                hour12: false });
+            return utcDate.toLocaleTimeString([], {
+                hour: '2-digit', minute: '2-digit',
+                hour12: false
+            });
         } catch (e) { return utcTimeValue; }
     };
 
@@ -71,58 +73,48 @@ export default function History() {
         });
     }, [data, date, selectedDate, status]);
 
-    const renderClassItem = ({ item }) => (
-        <View style={styles.card}>
-            {/* Tutor Info Section */}
-            <View style={styles.tutorSection}>
-                <Image
-                    source={{ uri: Image_URL + item?.profile }}
-                    style={styles.avatar}
-                />
-                <View style={styles.tutorInfo}>
-                    <Text style={styles.nameText}>{item?.name}</Text>
-                    {item?.Status === 'completed' && (
-                        <View style={styles.ratingRow}>
-                            <Icon name='star' color='#FFD700' size={14} />
-                            <Text style={styles.ratingText}>{item?.rating}</Text>
+    const renderClassItem = ({ item }) => {
+        if (!item) return null;
+
+        return (
+            <View style={styles.card}>
+
+                {/* Header */}
+                <View style={styles.header}>
+                    <View style={styles.userRow}>
+                        <Image
+                            source={{ uri: Image_URL + (item?.TutorImage || '') }}
+                            style={styles.avatar}
+                        />
+                        <View>
+                            <Text style={styles.name}>{item?.TutorName || 'Unknown'}</Text>
+                            <Text style={styles.sub}>
+                                {item?.ClassDate?.split('T')[0]} • {convertUtcToUserTime(item?.StartTime)} - {convertUtcToUserTime(item?.EndTime)}
+                            </Text>
                         </View>
-                    )}
-                </View>
-                <View style={[styles.statusBadge, styles[item?.Status?.toLowerCase()]]}>
-                    <Text style={[styles.statusText, styles[`${item?.Status?.toLowerCase()}Text`]]}>
+                    </View>
+
+                    <Text style={[styles.status, styles[item?.Status?.toLowerCase()] || styles.defaultStatus]}>
                         {item?.Status?.toUpperCase()}
                     </Text>
                 </View>
-            </View>
 
-            <View style={styles.divider} />
-
-            {/* Class Details Section */}
-            <View style={styles.detailsSection}>
-                <View style={styles.detailRow}>
-                    <Icon name="calendar-clock" size={16} color="#666" />
-                    <Text style={styles.infoText}>
-                        {item?.ClassDate?.split('T')[0]}  •  {convertUtcToUserTime(item?.startTime)} - {convertUtcToUserTime(item?.endTime)}
-                    </Text>
-                </View>
-
-                <View style={styles.detailRow}>
-                    <Icon name="file-document-edit-outline" size={16} color="#666" />
-                    <Text style={styles.infoText}>Corrections: {item?.Corrections || 0}</Text>
-                </View>
+                {/* Body */}
+                <Text style={styles.text}>
+                    Subject : {item?.Subject} • {item?.DayName} •  Ayat: {item?.startAyat ?? 0}-{item?.endAyat ?? 0}
+                </Text>
 
                 {item?.Status === 'completed' && (
-                    <View style={styles.assignmentContainer}>
-                        <Text style={styles.assignmentLabel}>Assignment:</Text>
-                        <Text style={styles.assignmentText} numberOfLines={2}>
-                            {item?.assignment || 'No task assigned'}
+                    <>
+                        <Text style={styles.text}>Rating : {item?.Rating ?? 0} ⭐</Text>
+                        <Text style={styles.note} numberOfLines={2}>
+                            {item?.notes || 'No notes'}
                         </Text>
-                    </View>
+                    </>
                 )}
             </View>
-        </View>
-    );
-
+        );
+    };
     return (
         <View style={styles.container}>
             <Header />

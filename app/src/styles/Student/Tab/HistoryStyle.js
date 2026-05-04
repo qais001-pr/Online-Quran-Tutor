@@ -52,89 +52,88 @@ export const styles = StyleSheet.create({
     },
     card: {
         backgroundColor: '#FFF',
-        marginHorizontal: 16,
-        marginTop: 12,
+        padding: 14,
+        marginVertical: 8,
+        marginHorizontal: 12,
         borderRadius: 12,
-        padding: 16,
-        // Shadow
-        elevation: 3,
+
+        // Shadow (iOS)
         shadowColor: '#000',
+        shadowOpacity: 0.08,
+        shadowRadius: 6,
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
+
+        // Elevation (Android)
+        elevation: 3,
     },
-    tutorSection: {
+
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+
+    userRow: {
         flexDirection: 'row',
         alignItems: 'center',
+        gap: 10,
     },
+
     avatar: {
         width: 44,
         height: 44,
         borderRadius: 22,
         backgroundColor: '#EEE',
     },
-    tutorInfo: {
-        flex: 1,
-        marginLeft: 12,
-    },
-    nameText: {
-        fontSize: 16,
-        fontWeight: '700',
+
+    name: {
+        fontSize: 15,
+        fontWeight: '600',
         color: '#222',
     },
-    ratingRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
+
+    sub: {
+        fontSize: 12,
+        color: '#777',
         marginTop: 2,
     },
-    ratingText: {
-        fontSize: 12,
-        color: '#666',
-        marginLeft: 4,
-    },
-    statusBadge: {
-        paddingHorizontal: 10,
-        paddingVertical: 4,
+
+    status: {
+        fontSize: 11,
+        fontWeight: '600',
+        paddingHorizontal: 8,
+        paddingVertical: 3,
         borderRadius: 6,
+        overflow: 'hidden',
     },
-    completed: { backgroundColor: '#E8F5E9' },
-    missed: { backgroundColor: '#FFEBEE' },
-    statusText: { fontSize: 11, fontWeight: '800' },
-    completedText: { color: '#2E7D32' },
-    missedText: { color: '#C62828' },
-    divider: {
-        height: 1,
-        backgroundColor: '#F0F0F0',
-        marginVertical: 12,
+
+    completed: {
+        backgroundColor: '#E6F4EA',
+        color: '#2E7D32',
     },
-    detailsSection: {
-        gap: 8,
+
+    pending: {
+        backgroundColor: '#FFF4E5',
+        color: '#EF6C00',
     },
-    detailRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    infoText: {
-        fontSize: 14,
+
+    defaultStatus: {
+        backgroundColor: '#EEE',
         color: '#555',
-        marginLeft: 8,
     },
-    assignmentContainer: {
-        marginTop: 8,
-        padding: 10,
-        backgroundColor: '#F9F9F9',
-        borderRadius: 8,
-    },
-    assignmentLabel: {
-        fontSize: 12,
-        fontWeight: '700',
-        color: '#888',
-        marginBottom: 2,
-    },
-    assignmentText: {
+
+    text: {
         fontSize: 13,
         color: '#444',
-        lineHeight: 18,
+        marginTop: 4,
+    },
+
+    note: {
+        fontSize: 13,
+        color: '#666',
+        marginTop: 4,
+        fontStyle: 'italic',
     },
     emptyContainer: {
         alignItems: 'center',

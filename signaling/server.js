@@ -1,3 +1,4 @@
+const { Socket } = require('dgram');
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -17,8 +18,6 @@ io.on('connection', socket => {
     socket.on('join-room', roomId => {
 
         socket.join(roomId);
-
-        // console.log(`User ${socket.id} joined room ${roomId}`);
 
         // Broadcast to all other users in the room
         socket.to(roomId).emit('user-join-successfully', {
@@ -54,16 +53,37 @@ io.on('connection', socket => {
             from: socket.id,
         });
     });
+    socket.on('onClick-Ayats', data => {
+        const { index, room } = data;
+        console.log(index)
+        console.log(room)
+        socket.to(room).emit('onClick-Ayats', { index: index, room: room })
+    })
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
     });
 
     socket.on('end-call', data => {
-        const { message, room } = data;
-        console.log('Message:  ', message)
-        console.log('Room id: ', room)
-        socket.to(room).emit('success-end-call', 'User has Left the Class Successfully')
-    })
+        const { room } = data;
+
+        // 1. Room mein sabko batao ke call khatam ho gayi hai
+        // socket.to(room).emit() sirf doosre user ko bhejta hai
+        // io.in(room).emit() sabko (including sender) bhejta hai
+        io.in(room).emit('success-end-call', {
+            message: 'Call has been terminated',
+        });
+
+        // 2. Sabhi users ko room se disconnect/leave karwao
+        const socketsInRoom = io.sockets.adapter.rooms.get(room);
+        if (socketsInRoom) {
+            for (const socketId of socketsInRoom) {
+                const clientSocket = io.sockets.sockets.get(socketId);
+                if (clientSocket) {
+                    clientSocket.leave(room);
+                }
+            }
+        }
+    });
 });
 const PORT = 4000;
 

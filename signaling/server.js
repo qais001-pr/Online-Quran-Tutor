@@ -1,10 +1,11 @@
-const { Socket } = require('dgram');
+const { Socket } = require('socket.io');
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
+const activeuserList = []
 const io = new Server(server, {
     cors: {
         origin: '*',
@@ -13,8 +14,40 @@ const io = new Server(server, {
         transports: ['websocket', 'polling'],
     },
 });
+
 io.on('connection', socket => {
+    // console.log(socket);
     console.log('User connected:', socket.id);
+
+    socket.on("user-connected", (data) => {
+
+        const { user } = data;
+        // Prevent undefined user
+        if (!user || !user.userID) {
+            console.log("Invalid User");
+            return;
+        }
+        // Check existing user
+        const checkUser = activeuserList.find(
+            (u) => u.userID === user.userID
+        );
+        // Add user if not exists
+        if (!checkUser) {
+            activeuserList.push({
+                userID: user.userID,
+                socketID: socket.id,
+            });
+
+        } else {
+            console.log(
+                "User already connected:",
+                user.userID
+            );
+        }
+        console.log("Active Users:", activeuserList);
+        io.emit("user-connected-list", activeuserList);
+
+    });
     socket.on('join-room', roomId => {
 
         socket.join(roomId);
@@ -39,7 +72,7 @@ io.on('connection', socket => {
         socket.to(data.room).emit('incoming-call', { from: data.room, offer: data.offer })
     });
     socket.on('answer', data => {
-        console.log('CAll Accepted')
+        console.log('Call Accepted')
         console.log('Answer' + data.answer);
 
         socket.to(data.room).emit('answer', {

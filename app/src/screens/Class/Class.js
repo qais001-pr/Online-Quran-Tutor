@@ -27,10 +27,21 @@ export default function Class({ navigation, route }) {
     const [cameraOn, setCameraOn] = useState(true);
     const [micOn, setMicOn] = useState(true);
     const [showmodal, setshowmodal] = useState(false);
+    const [totalSeconds, setTotalSeconds] = useState(0);
     const [data, setData] = useState([]);
     const ClassID = route.params?.classID;
     const endTime = route.params?.endTime;
-    const { Socket } = useSocket()
+    const { Socket } = useSocket();
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setTotalSeconds((prev) => prev + 1);
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
     const convertUtcToUserTime = useCallback((utcTimeValue) => {
         if (!utcTimeValue) return "";
         const userTimeZone = user?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -100,23 +111,23 @@ export default function Class({ navigation, route }) {
     }, [ClassID, Peer, Socket]);
 
 
-    useEffect(() => {
-        if (!Socket.connected) {
-            Socket.connect();
-        }
+    // useEffect(() => {
+    //     if (!Socket.connected) {
+    //         Socket.connect();
+    //     }
 
-        Socket.emit('join-room', ClassID);
+    //     // Socket.emit('join-room', ClassID);
 
-        const handleUserJoin = ({ socketid, roomID }) => {
-            console.log('User joined:', socketid, roomID);
-        };
+    //     const handleUserJoin = ({ socketid, roomID }) => {
+    //         console.log('User joined:', socketid, roomID);
+    //     };
 
-        Socket.on('user-join-successfully', handleUserJoin);
+    //     Socket.on('user-join-successfully', handleUserJoin);
 
-        return () => {
-            Socket.off('user-join-successfully', handleUserJoin);
-        };
-    }, [ClassID, Socket]);
+    //     return () => {
+    //         Socket.off('user-join-successfully', handleUserJoin);
+    //     };
+    // }, [ClassID, Socket]);
 
     let handleEndCallSuccess = useCallback(() => {
         inCallManager.stop();
@@ -417,6 +428,9 @@ export default function Class({ navigation, route }) {
                     <View style={[styles.header, { flexDirection: 'row', justifyContent: 'space-between' }]}>
                         <View>
                             <Text style={styles.surahName}>Surah: {data?.surahName || ''}</Text>
+                            <Text style={{ color: 'red', fontSize: 18, fontWeight: '700' }}>
+                                {String(minutes).padStart(2, '0')} : {String(seconds).padStart(2, '0')}
+                            </Text>
                         </View>
                     </View>
                     {/* Ayat List */}

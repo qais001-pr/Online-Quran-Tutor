@@ -11,7 +11,7 @@ import Colors from '../../../theme/Colors';
 const Header = ({ headerdata }) => {
     const navigation = useNavigation()
     const { user } = useAuth()
-    console.log(headerdata);
+    // console.log(headerdata);
     return (
         <SafeAreaView style={styles.headerContainer}>
 
@@ -81,7 +81,7 @@ export default function StudentHomeDashboard() {
         FetchData()
     }, [FetchData]))
     useEffect(() => {
-        console.log(user)
+        // console.log(user)
         if (!user) {
             navigation.replace('login')
         }
@@ -93,7 +93,7 @@ export default function StudentHomeDashboard() {
             const response = await fetch(`${Base_URL}StudentDashboard/GetDataOfStudent?studentId=${user?.userID}`)
             if (response.ok) {
                 const result = await response.json()
-                console.log(result);
+                // console.log(result);
                 if (result?.success) {
                     setHeaderData(result?.data);
                 }

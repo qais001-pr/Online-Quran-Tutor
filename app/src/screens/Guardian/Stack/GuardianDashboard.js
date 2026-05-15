@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import HomeScreen from '../Tab/HomeScreen'
 import Tutor from '../../Guardian/Tab/Tutor';
 import Schedule from '../../Guardian/Tab/Schedule';
-import Classes from '../Tab/Classes'
+// import Classes from '../Tab/Classes'
 import History from '../../Guardian/Tab/History';
 
 import Colors from '../../../theme/Colors'
@@ -59,9 +59,9 @@ export default function GuardianDashboard() {
                     else if (route.name === 'HistoryChildren') {
                         iconName = focused ? 'time' : 'time-outline'
                     }
-                    else if (route.name === 'Classes') {
-                        iconName = focused ? 'book' : 'book-outline'
-                    }
+                    // else if (route.name === 'Classes') {
+                    //     iconName = focused ? 'book' : 'book-outline'
+                    // }
 
                     return (
                         <Icon
@@ -96,13 +96,13 @@ export default function GuardianDashboard() {
                     tabBarLabel: 'Tutors'
                 }}
             />
-            <Tab.Screen
+            {/* <Tab.Screen
                 name="Classes"
                 component={Classes}
                 options={{
                     tabBarLabel: 'Classes'
                 }}
-            />
+            /> */}
 
             <Tab.Screen
                 name="HistoryChildren"

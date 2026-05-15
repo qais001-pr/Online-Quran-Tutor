@@ -63,8 +63,8 @@ export default function AppNavigation() {
                 <Stack.Screen name="PersonalInfo" component={PersonalInfoStudent} />
                 <Stack.Screen name="TutorProfile" component={TutorProfile} />
                 {/* Guardian Dashboard */}
-                <Stack.Screen name="GuardianDashboard" component={GuardianDashboard} />
-                <Stack.Screen name="ChildrenAccounts" component={ChildAccounts} />
+                <Stack.Screen name="GuardianHomeDashboard" component={GuardianDashboard} />
+                <Stack.Screen name="GuardianDashboard" component={ChildAccounts} />
 
 
                 {/* Quran */}

@@ -139,7 +139,7 @@ export default function History() {
                 </View>
 
                 {/* Filters Row */}
-                <View style={styles.filterRow}>
+                {/* <View style={styles.filterRow}>
                     <TouchableOpacity style={styles.datePickerBtn} onPress={() => setOpen(true)}>
                         <Icon name="calendar-search" size={18} color="#37905f" />
                         <Text style={styles.dateText}>
@@ -161,7 +161,7 @@ export default function History() {
                             <Icon name="filter-variant" size={18} color="#37905f" style={{ marginRight: 5 }} />
                         )}
                     />
-                </View>
+                </View> */}
             </View>
 
             <FlatList

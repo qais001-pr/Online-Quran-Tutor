@@ -1,7 +1,5 @@
-/* eslint-disable react-native/no-inline-styles */
-/* eslint-disable react-hooks/exhaustive-deps */
 import { View, Text, StatusBar, FlatList, ActivityIndicator } from 'react-native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback,  useState } from 'react';
 import Colors from '../../../theme/Colors';
 import { useAuth } from '../../../context/auth';
 import { Base_URL } from '../../../../IpConfig';

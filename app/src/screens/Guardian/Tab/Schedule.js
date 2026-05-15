@@ -1,16 +1,12 @@
-/* eslint-disable react-native/no-inline-styles */
 import { View, Text, StatusBar, FlatList, ActivityIndicator } from 'react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import Colors from '../../../theme/Colors';
 import { useChildrens } from '../../../context/Childrens';
 import { Base_URL } from '../../../../IpConfig';
-import { Checkbox, Modal, Portal, Provider } from 'react-native-paper';
-import Header from '../../../components/Header';
+import { Checkbox, Modal } from 'react-native-paper';
 import { styles } from '../../../styles/Student/Tab/ScheduleStyle';
 import { useFocusEffect } from '@react-navigation/native';
-import ChildrenHeader from '../../../components/ChildrenHeader';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
+import ChildHeader from '../../../components/ChildHeader';
 const TIME_COLUMN_WIDTH = 55;
 
 export default function Schedule({ navigation }) {
@@ -115,42 +111,42 @@ export default function Schedule({ navigation }) {
     );
 
     return (
-        <Provider>
-            <SafeAreaView style={styles.safeAreaView}>
-                <StatusBar barStyle={'dark-content'} />
-                {/* <Header /> */}
-                <ChildrenHeader />
-                {/* <Text style={{ paddingLeft: 10, fontSize: 17, backgroundColor: Colors.border, color: Colors.backgroundColor }}>Schedule</Text> */}
-                <View style={styles.gridContainer}>
+        // <Provider>
+        <View style={styles.safeAreaView}>
+            <StatusBar barStyle={'dark-content'} />
+            <ChildHeader />
+            {/* <ChildrenHeader /> */}
+            {/* <Text style={{ paddingLeft: 10, fontSize: 17, backgroundColor: Colors.border, color: Colors.backgroundColor }}>Schedule</Text> */}
+            <View style={styles.gridContainer}>
 
-                    <View style={{ width: TIME_COLUMN_WIDTH }}>
-                        <View style={styles.columnHeader}>
-                            <Text style={styles.headerLabelText}>Time</Text>
-                        </View>
-                        <FlatList
-                            data={timeList}
-                            keyExtractor={(item) => item.SlotID.toString()}
-                            renderItem={renderTimeItem}
-                            showsVerticalScrollIndicator={false}
-                            scrollEnabled={false}
-                        />
+                <View style={{ width: TIME_COLUMN_WIDTH }}>
+                    <View style={styles.columnHeader}>
+                        <Text style={styles.headerLabelText}>Time</Text>
                     </View>
-
                     <FlatList
-                        data={scheduleList}
-                        keyExtractor={(item) => item.DayID.toString()}
-                        renderItem={renderDayColumn}
-                        horizontal={true}
+                        data={timeList}
+                        keyExtractor={(item) => item.SlotID.toString()}
+                        renderItem={renderTimeItem}
                         showsVerticalScrollIndicator={false}
+                        scrollEnabled={false}
                     />
                 </View>
 
-                <Portal>
-                    <Modal visible={loading} dismissable={false}>
-                        <ActivityIndicator size="large" color="white" />
-                    </Modal>
-                </Portal>
-            </SafeAreaView>
-        </Provider >
+                <FlatList
+                    data={scheduleList}
+                    keyExtractor={(item) => item.DayID.toString()}
+                    renderItem={renderDayColumn}
+                    horizontal={true}
+                    showsVerticalScrollIndicator={false}
+                />
+            </View>
+
+            {/* <Portal> */}
+            <Modal visible={loading} dismissable={false}>
+                <ActivityIndicator size="large" color="white" />
+            </Modal>
+            {/* </Portal> */}
+        </View>
+        // </Provider >
     );
 }

@@ -61,8 +61,8 @@ namespace webapi.Controllers.Dashboard
                                                       join surah in _context.surahs on s.surah.Id equals surah.Id
                                                       where tt.TimeTableid == c.TimeTableid
                                                       select surah.surah_Urdu_Names).FirstOrDefault(),
-                                         studentName = c.Enrollment.User.name,
-                                         studentProfile = c.Enrollment.User.profile,
+                                         tutorName = c.Enrollment.User1.name,
+                                         tutorProfile = c.Enrollment.User1.profile,
                                          studentLocation = c.Enrollment.User.country,
                                          subject = c.Enrollment.User.Subject.subjectName,
                                          startTime = c.Slot.startTime,

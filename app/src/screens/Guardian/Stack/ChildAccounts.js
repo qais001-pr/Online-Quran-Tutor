@@ -17,7 +17,7 @@ import { Image_URL } from '../../../../IpConfig';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { styles } from '../../../styles/Guardian/Stack/ChildrenAccountStyles';
 export default function ChildAccounts({ navigation }) {
-    const { childrenList } = useChildrens();
+    const { childrenList, setSelectedChildID, setChildData } = useChildrens();
     const [loading, setLoading] = useState(false);
 
     const renderHeader = () => (
@@ -40,12 +40,18 @@ export default function ChildAccounts({ navigation }) {
             <Text style={styles.emptySubText}>Add your children to manage their activities.</Text>
         </View>
     );
+    let navigateToGuardian = (item) => {
+        console.log(item);
+        setChildData(item);
+        setSelectedChildID(item?.childrenID);
+        navigation.replace('GuardianHomeDashboard')
+    }
 
     const renderChildItem = ({ item }) => (
         <TouchableOpacity
             activeOpacity={0.7}
             style={styles.card}
-            onPress={() => {/* Navigate to details if needed */ }}
+            onPress={() => { navigateToGuardian(item) }}
         >
             <View style={styles.cardContent}>
                 <Image

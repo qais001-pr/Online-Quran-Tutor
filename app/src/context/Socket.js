@@ -8,6 +8,7 @@ export const SocketProvider = ({ children }) => {
 
     const { user } = useAuth()
     const [Socket, setSocket] = useState()
+    const [ActiveUser, setActiveUsers] = useState()
     let connectSocket = useCallback(() => {
 
         try {
@@ -39,7 +40,7 @@ export const SocketProvider = ({ children }) => {
 
         console.log('User Active List:', data);
 
-        // setActiveUsers(data);
+        setActiveUsers(data);
 
     }, []);
     useEffect(() => {
@@ -57,7 +58,7 @@ export const SocketProvider = ({ children }) => {
         connectSocket()
     }, [connectSocket])
     return (
-        <SocketContext.Provider value={{ Socket }}>
+        <SocketContext.Provider value={{ Socket, ActiveUser, setActiveUsers }}>
             {children}
         </SocketContext.Provider>
     )

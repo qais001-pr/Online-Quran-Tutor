@@ -1,6 +1,6 @@
+/* eslint-disable react/self-closing-comp */
 /* eslint-disable react/no-unstable-nested-components */
 /* eslint-disable react-native/no-inline-styles */
-
 import {
     View,
     Text,
@@ -21,9 +21,12 @@ import { useFocusEffect, } from '@react-navigation/native';
 import Header from '../../../components/Header';
 import { styles } from '../../../styles/Student/Tab/TutorStyle';
 import Icon from 'react-native-vector-icons/Ionicons'
+import { useSocket } from '../../../context/Socket';
 export default function Tutor({ navigation }) {
 
     const { user } = useAuth();
+    const { ActiveUser } = useSocket()
+
     const [loading, setLoading] = useState(false);
     const [hireCheck, sethireCheck] = useState(false);
     const [dataList, setDataList] = useState([]);
@@ -31,15 +34,21 @@ export default function Tutor({ navigation }) {
     const [selectedSurah, setSelectedSurah] = useState(null);
     const [tutorID, setTutorID] = useState(null);
     const [refreshing, setRefreshing] = useState(false);
+    const [onlineStatus, setOnlineStatus] = useState(false);
+
+
     const onRefresh = () => {
         setRefreshing(true); setLoading(false)
         fetchData();
     };
+
+
     useFocusEffect(
         useCallback(() => {
             fetchData();
-        }, [fetchData])
-    );
+        }, [fetchData]));
+
+
     let fetchSurah = async () => {
         try {
             const response = await fetch(`${Base_URL}Qurans/GetSurah`)
@@ -57,7 +66,6 @@ export default function Tutor({ navigation }) {
     const fetchData = useCallback(async () => {
         try {
             setLoading(true);
-
             const response = await fetch(
                 `${Base_URL}Students/getAvailableTutorByStudentID?studentID=${user?.userID}`
             );
@@ -118,69 +126,81 @@ export default function Tutor({ navigation }) {
     }
 
     //  TUTOR CARD 
-    const renderTutor = ({ item }) => (
-        <View style={styles.card}>
+    const renderTutor = ({ item }) => {
+        if (ActiveUser) {
+            const checkOnlineStatus = ActiveUser.some(a => a.userID === item?.userID);
+            setOnlineStatus(checkOnlineStatus)
+        }
 
-            {/* TOP ROW */}
-            <View style={styles.topRow}>
+        return (
+            <View style={styles.card}>
 
-                {/* LEFT CLICKABLE AREA */}
-                <TouchableOpacity
-                    activeOpacity={0.8}
-                    style={styles.leftSection}
-                    onPress={() =>
-                        navigation.navigate('TutorProfile', {
-                            userid: item?.userID,
-                        })
-                    }
-                >
-                    <Image
-                        style={styles.avatar}
-                        source={{
-                            uri: `${Image_URL}${item.profile}`
-                        }}
-                    />
+                {/* TOP ROW */}
+                <View style={styles.topRow}>
 
-                    <View style={styles.infoSection}>
-                        <Text style={styles.name}>{item?.name}</Text>
-                        <Text style={styles.location}>
-                            {item?.city}, {item?.country}
-                        </Text>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <View>
-                                <Icon name='star' color='#dfd043' size={14} />
-                            </View>
-                            <Text style={styles.location}>
-                                {item?.rating.toFixed(1)}
-                            </Text>
+                    {/* LEFT CLICKABLE AREA */}
+                    <TouchableOpacity
+                        activeOpacity={0.8}
+                        style={styles.leftSection}
+                        onPress={() =>
+                            navigation.navigate('TutorProfile', {
+                                userid: item?.userID,
+                            })
+                        }
+                    >
+                        <View>
+                            <Image
+                                style={styles.avatar}
+                                source={{
+                                    uri: `${Image_URL}${item.profile}`
+                                }}
+                            />
+                            {/* <View style={{
+                                borderRadius: 100, backgroundColor: 'green',
+                                position: 'absolute', borderWidth: 10, borderColor: onlineStatus ? '#06f021' : '#dc1515'
+                            }}></View> */}
                         </View>
+                        <View style={styles.infoSection}>
+                            <Text style={styles.name}>{item?.name}</Text>
+                            <Text style={styles.location}>
+                                {item?.city}, {item?.country}
+                            </Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <View>
+                                    <Icon name='star' color='#dfd043' size={14} />
+                                </View>
+                                <Text style={styles.location}>
+                                    {item?.rating.toFixed(1)}
+                                </Text>
+                            </View>
+                        </View>
+                    </TouchableOpacity>
+
+                    {/* RIGHT BUTTON */}
+                    <TouchableOpacity style={styles.hireBtn}
+
+                        onPress={() => HireButton(item)}>
+                        <Text style={styles.hireText}>Hire</Text>
+                    </TouchableOpacity>
+
+                </View>
+
+                {/* SUBJECTS */}
+                {!!item?.subjects?.length && (
+                    <View style={styles.subjectContainer}>
+                        {item.subjects.map(sub => (
+                            <View key={sub.subjectID} style={styles.subjectChip}>
+                                <Text style={styles.subjectText}>
+                                    {sub.subjectName}
+                                </Text>
+                            </View>
+                        ))}
                     </View>
-                </TouchableOpacity>
-
-                {/* RIGHT BUTTON */}
-                <TouchableOpacity style={styles.hireBtn}
-
-                    onPress={() => HireButton(item)}>
-                    <Text style={styles.hireText}>Hire</Text>
-                </TouchableOpacity>
+                )}
 
             </View>
-
-            {/* SUBJECTS */}
-            {!!item?.subjects?.length && (
-                <View style={styles.subjectContainer}>
-                    {item.subjects.map(sub => (
-                        <View key={sub.subjectID} style={styles.subjectChip}>
-                            <Text style={styles.subjectText}>
-                                {sub.subjectName}
-                            </Text>
-                        </View>
-                    ))}
-                </View>
-            )}
-
-        </View>
-    );
+        )
+    };
 
 
     // UI

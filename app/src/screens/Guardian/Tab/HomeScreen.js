@@ -1,337 +1,261 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, { useCallback, useState } from 'react';
-import {
-    View, Text, Image, ScrollView, RefreshControl, StatusBar,
-    TouchableOpacity, StyleSheet, Dimensions
-} from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { View, Text, TouchableOpacity, Image, Pressable, ScrollView, RefreshControl } from 'react-native'
+import React, { useCallback, useEffect, useState } from 'react'
+// import { useAuth } from '../../../context/auth'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import Icon from 'react-native-vector-icons/Ionicons';
+import { style as styles } from '../../../styles/Student/Tab/StudentHomeDashboardStyle'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Base_URL, Image_URL } from '../../../../IpConfig';
-import ChildrenHeader from '../../../components/ChildrenHeader';
+import Colors from '../../../theme/Colors';
 import { useChildrens } from '../../../context/Childrens';
-
-const { width } = Dimensions.get('window');
-
-const ChildSummary = ({ data }) => {
-    const progress = data?.classStatistics?.progressPercentage || 0;
-
+const Header = ({ headerdata }) => {
+    const { child } = useChildrens()
+    const navigation = useNavigation()
     return (
-        <View style={styles.summaryCard}>
-            <View style={styles.summaryHeader}>
-                <View>
-                    <Text style={styles.summaryTitle}>Progress</Text>
-                    <Text style={styles.summarySubtitle}>Based on overall attendance</Text>
-                </View>
-                <Text style={styles.percentageText}>{progress}%</Text>
-            </View>
+        <SafeAreaView style={styles.headerContainer}>
 
-            <View style={styles.progressTrack}>
-                <View style={[styles.progressFill, { width: `${progress}%` }]} />
-            </View>
-
-            <View style={styles.summaryFooter}>
-                <Text style={styles.footerNote}>Keep it up! You're doing great.</Text>
-            </View>
-        </View>
-    );
-};
-
-const Stats = ({ data }) => {
-    const stats = [
-        { label: 'Total', value: data?.classStatistics?.totalClasses, icon: 'book-outline', color: '#6366f1' },
-        { label: 'Done', value: data?.classStatistics?.completedClasses, icon: 'checkmark-done-circle-outline', color: '#059669' },
-        { label: 'Pending', value: data?.classStatistics?.pendingClasses, icon: 'hourglass-outline', color: '#f59e0b' }
-    ];
-
-    return (
-        <View style={styles.sectionContainer}>
-            <Text style={styles.sectionLabel}>Learning Activity</Text>
-            <View style={styles.statsGrid}>
-                {stats.map((item, i) => (
-                    <View key={i} style={styles.statBox}>
-                        <View style={[styles.iconCircle, { backgroundColor: `${item.color}15` }]}>
-                            <Icon name={item.icon} size={22} color={item.color} />
-                        </View>
-                        <Text style={styles.statValue}>{item.value || 0}</Text>
-                        <Text style={styles.statLabel}>{item.label}</Text>
-                    </View>
-                ))}
-            </View>
-        </View>
-    );
-};
-
-// --- Component 3: Premium Upcoming Class Card ---
-const UpcomingClass = ({ data, isLocked }) => {
-    if (!data?.upcomingClass) return null;
-    const cls = data.upcomingClass;
-
-    return (
-        <View style={styles.sectionContainer}>
-            <Text style={styles.sectionLabel}>Upcoming Class</Text>
-            <View style={styles.upcomingCard}>
-                <View style={styles.instructorRow}>
+            {/* Profile Section */}
+            <View style={styles.profileSection}>
+                <Pressable onPress={() => navigation.navigate('Profile')}>
                     <Image
-                        source={{ uri: `${Image_URL}${cls?.instructorProfile}` }}
-                        style={styles.instructorAvatar}
+                        source={{ uri: `${Image_URL}${child?.profile}` }}
+                        style={styles.profileImage}
                     />
-                    <View style={styles.instructorInfo}>
-                        <Text style={styles.instructorName}>{cls.instructorName}</Text>
-                        <Text style={styles.instructorRole}>Assigned Tutor</Text>
-                    </View>
-                    <View style={[styles.badge, { backgroundColor: isLocked ? '#F3F4F6' : '#DCFCE7' }]}>
-                        <Text style={[styles.badgeText, { color: isLocked ? '#6B7280' : '#166534' }]}>
-                            {isLocked ? 'Scheduled' : 'Live Now'}
+                </Pressable>
+
+                <View style={styles.profileInfo}>
+                    <Text style={styles.greetingText}>
+                        Assalam-u-Alaikum
+                    </Text>
+
+                    <Text style={styles.nameText}>
+                        {child?.name || 'Guest'}
+                    </Text>
+
+                    <Text style={styles.locationText}>
+                        {child?.city || 'City'}, {child?.country || 'Country'}
+                    </Text>
+                </View>
+            </View>
+
+            {/* Progress Section */}
+            <View style={styles.progressContainer}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <View>
+                        <Text style={styles.progressTitle}>
+                            {headerdata?.surah_Urdu_Names}
                         </Text>
                     </View>
+                    {/* "totalAyats": 287,
+                    "completedAyats": 4,
+                    "ayatProgress": 1.39 */}
+                    <Text style={styles.progressSubtitle}>{headerdata?.ayatProgress || 0}%</Text>
                 </View>
 
-                <View style={styles.divider} />
-
-                <View style={styles.lessonInfo}>
-                    <View style={styles.infoRow}>
-                        <Icon name="library-outline" size={18} color="#6B7280" />
-                        <Text style={styles.lessonText}>{cls?.surahName} • {cls?.lessonName.split('-')[1]}</Text>
-                    </View>
-                    <View style={styles.infoRow}>
-                        <Icon name="calendar-outline" size={18} color="#6B7280" />
-                        <Text style={styles.lessonText}>{cls?.scheduledDate}</Text>
-                    </View>
+                <View style={styles.progressBarBackground}>
+                    <View
+                        style={[
+                            styles.progressBarFill,
+                            {
+                                width: `${headerdata?.ayatProgress || 0}%`
+                            }
+                        ]}
+                    />
                 </View>
-
-                <TouchableOpacity
-                    activeOpacity={0.8}
-                    style={[styles.actionButton, isLocked && styles.disabledButton]}
-                >
-                    <Text style={[styles.actionButtonText, isLocked && styles.disabledButtonText]}>
-                        {isLocked ? 'Waiting for Start Time' : 'Join Classroom'}
-                    </Text>
-                    {!isLocked && <Icon name="arrow-forward" size={18} color="#fff" />}
-                </TouchableOpacity>
-            </View>
-        </View>
-    );
-};
-
-export default function HomeScreen() {
-    const { child } = useChildrens();
-    const [refreshing, setRefreshing] = useState(false);
-    const [data, setHeaderData] = useState(null);
-
-    const FetchData = useCallback(async () => {
-        try {
-            const response = await fetch(`${Base_URL}StudentDashboard/GetDataOfStudent?studentId=${child?.childrenID}`);
-            if (response.ok) {
-                const result = await response.json();
-                if (result?.success) setHeaderData(result?.data);
-            }
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setRefreshing(false);
-        }
-    }, [child?.childrenID]);
-
-    useFocusEffect(useCallback(() => { FetchData(); }, [FetchData]));
-
-    const isLocked = data?.upcomingClass ? true : false; // Use your logic here
-
-    return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
-            <ChildrenHeader />
-            <ScrollView
-                showsVerticalScrollIndicator={false}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); FetchData(); }} />}
-                contentContainerStyle={{ paddingBottom: 30 }}
-            >
-                <ChildSummary data={data} />
-                <Stats data={data} />
-                <UpcomingClass data={data} isLocked={isLocked} />
-            </ScrollView>
-        </SafeAreaView>
+            </View >
+        </SafeAreaView >
     );
 }
+export default function HomeScreen() {
+    const navigation = useNavigation()
+    const { child, selectedChildID } = useChildrens()
+    const [refreshing, setRefreshing] = useState(false);
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F9FAFB', // Professional off-white
-    },
-    sectionContainer: {
-        marginTop: 20,
-        paddingHorizontal: 16,
-    },
-    sectionLabel: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: '#1F2937',
-        marginBottom: 12,
-    },
-    // Summary Card
-    summaryCard: {
-        margin: 16,
-        padding: 20,
-        borderRadius: 20,
-        backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: '#F3F4F6',
-        elevation: 2,
-    },
-    summaryHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 15,
-    },
-    summaryTitle: {
-        fontSize: 18,
-        fontWeight: '800',
-        color: '#111827',
-    },
-    summarySubtitle: {
-        fontSize: 12,
-        color: '#6B7280',
-    },
-    percentageText: {
-        fontSize: 24,
-        fontWeight: '900',
-        color: '#059669',
-    },
-    progressTrack: {
-        height: 10,
-        backgroundColor: '#E5E7EB',
-        borderRadius: 5,
-        overflow: 'hidden',
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#059669',
-        borderRadius: 5,
-    },
-    summaryFooter: {
-        marginTop: 12,
-    },
-    footerNote: {
-        fontSize: 12,
-        fontStyle: 'italic',
-        color: '#9CA3AF',
-    },
-    // Stats Grid
-    statsGrid: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    statBox: {
-        width: (width - 48) / 3,
-        padding: 16,
-        borderRadius: 16,
-        backgroundColor: '#fff',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#F3F4F6',
-    },
-    iconCircle: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 8,
-    },
-    statValue: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: '#111827',
-    },
-    statLabel: {
-        fontSize: 11,
-        color: '#6B7280',
-        fontWeight: '500',
-    },
-    // Upcoming Card
-    upcomingCard: {
-        padding: 16,
-        borderRadius: 20,
-        backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: '#F3F4F6',
-        elevation: 4,
-        shadowColor: '#000',
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
-    },
-    instructorRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    instructorAvatar: {
-        width: 45,
-        height: 45,
-        borderRadius: 22.5,
-        backgroundColor: '#E5E7EB',
-    },
-    instructorInfo: {
-        flex: 1,
-        marginLeft: 12,
-    },
-    instructorName: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: '#111827',
-    },
-    instructorRole: {
-        fontSize: 11,
-        color: '#9CA3AF',
-    },
-    badge: {
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    badgeText: {
-        fontSize: 10,
-        fontWeight: '800',
-        textTransform: 'uppercase',
-    },
-    divider: {
-        height: 1,
-        backgroundColor: '#F3F4F6',
-        marginVertical: 15,
-    },
-    lessonInfo: {
-        gap: 8,
-        marginBottom: 15,
-    },
-    infoRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    lessonText: {
-        fontSize: 14,
-        color: '#4B5563',
-        fontWeight: '500',
-    },
-    actionButton: {
-        flexDirection: 'row',
-        backgroundColor: '#059669',
-        padding: 14,
-        borderRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: 8,
-    },
-    disabledButton: {
-        backgroundColor: '#F3F4F6',
-    },
-    actionButtonText: {
-        color: '#fff',
-        fontWeight: '700',
-        fontSize: 14,
-    },
-    disabledButtonText: {
-        color: '#9CA3AF',
-    }
-});
+    const onRefresh = () => {
+        setRefreshing(true);
+        FetchData();
+    };
+    useFocusEffect(useCallback(() => {
+        FetchData()
+    }, [FetchData]))
+    useEffect(() => {
+        console.log(child)
+        if (!child) {
+            navigation.replace('login')
+        }
+    }, [child, navigation])
+
+    const [data, setHeaderData] = useState()
+    let FetchData = useCallback(async () => {
+        try {
+            const response = await fetch(`${Base_URL}StudentDashboard/GetDataOfStudent?studentId=${selectedChildID}`)
+            if (response.ok) {
+                const result = await response.json()
+                console.log(result);
+                if (result?.success) {
+                    setHeaderData(result?.data);
+                }
+            }
+        } catch (error) {
+            setRefreshing(false)
+        } finally {
+            setRefreshing(false)
+        }
+    }, [selectedChildID])
+    useEffect(() => {
+        FetchData()
+    }, [FetchData])
+    const convertUtcToUserTime = (utcTimeValue) => {
+        if (!utcTimeValue) return "";
+        const userTimeZone = child?.timezone;
+
+        try {
+            const today = new Date().toISOString().split('T')[0];
+            const utcDate = new Date(`${today}T${utcTimeValue}Z`);
+            const formatter = new Intl.DateTimeFormat('en-US', {
+                timeZone: userTimeZone,
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+            const formattedTime = formatter.format(utcDate);
+            return formattedTime;
+
+        } catch (error) {
+            console.error("Conversion Error:", error);
+            return utcTimeValue.split(':')[0] + utcTimeValue.split(':')[1];
+        }
+    };
+    let checkDateAndTime = ({ i }) => {
+        const now = new Date();
+        const classDate = new Date(i.ClassDate);
+        const isSameDate =
+            now.getFullYear() === classDate.getFullYear() &&
+            now.getMonth() === classDate.getMonth() &&
+            now.getDate() === classDate.getDate();
+        if (!isSameDate) {
+            return true;
+        }
+
+        const currentHour = now.getHours();
+        const utcTimeStart = convertUtcToUserTime(i.startTime)
+        const utcTimeEnd = convertUtcToUserTime(i.endTime)
+        const startHour = parseInt(utcTimeStart.split(':')[0], 10);
+        const endHour = parseInt(utcTimeEnd.split(':')[0], 10);
+
+        const isInTimeRange = (currentHour >= startHour && currentHour < endHour);
+
+        if (isSameDate && isInTimeRange) {
+            return false;
+        }
+        return true;
+    };
+    const upcoming = data?.upcomingClass?.[0];
+    return (
+        <SafeAreaView style={{ flex: 1 }}>
+            <Header headerdata={data?.surahAyat || null} />
+            <ScrollView style={{ flex: 1, padding: 10, paddingTop: 10 }} refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }>
+                {/* Upcoming Class Card */}
+                {upcoming && (
+                    <View style={styles.upcomingCard}>
+
+                        {/* Header */}
+                        <View style={styles.cardHeader}>
+                            <Text style={styles.cardTitle}>Upcoming Class</Text>
+
+                            <View style={[
+                                styles.badge,
+                                upcoming?.status === 'pending' ? styles.pending : styles.defaultBadge
+                            ]}>
+                                <Text style={styles.badgeText}>
+                                    {upcoming?.status?.toUpperCase()}
+                                </Text>
+                            </View>
+                        </View>
+
+                        {/* Student Info */}
+                        <View style={styles.row}>
+                            <Image
+                                source={{ uri: Image_URL + (upcoming?.tutorProfile || '') }}
+                                style={styles.avatar}
+                            />
+
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.name}>{upcoming?.tutorName}</Text>
+                                <Text style={styles.sub}>{upcoming?.subject}</Text>
+                            </View>
+                        </View>
+
+                        {/* Surah */}
+                        <Text style={styles.surah}>{upcoming?.surahName}</Text>
+
+                        {/* Date & Time */}
+                        <View style={styles.infoRow}>
+                            <Icon name="calendar-outline" size={14} color="#666" />
+                            <Text style={styles.infoText}>{upcoming?.scheduledDate}</Text>
+                        </View>
+
+                        <View style={styles.infoRow}>
+                            <Icon name="time-outline" size={14} color="#666" />
+                            <Text style={styles.infoText}>
+                                {convertUtcToUserTime(upcoming?.startTime)} - {convertUtcToUserTime(upcoming?.endTime)}
+                            </Text>
+                        </View>
+
+                        {/* Button */}
+                        {/* <TouchableOpacity
+                            disabled={checkDateAndTime({ i: upcoming })}
+                            onPress={() => navigation.navigate('Class', { classID: upcoming?.classId })}
+                            style={
+                                checkDateAndTime({ i: upcoming })
+                                    ? styles.btnDisabled
+                                    : styles.btn
+                            }
+                        >
+                            <Icon name="videocam-outline" size={16} color="#fff" />
+                            <Text style={styles.btnText}>
+                                {checkDateAndTime({ i: upcoming }) ? 'Scheduled' : 'Join'}
+                            </Text>
+                        </TouchableOpacity> */}
+                    </View>
+                )}
+                <View style={{ paddingLeft: 10, paddingTop: 10 }}>
+                    <Text style={[styles.nameText, { color: Colors.backgroundColor }]}>Al -Quran</Text>
+                </View>
+                <View style={styles.container}>
+                    <TouchableOpacity
+                        activeOpacity={0.85}
+                        style={styles.card}
+                        onPress={() => navigation.navigate('Surahs')}
+                    >
+                        <View style={styles.iconContainer}>
+                            <Icon name="reader-outline" size={20} color="#fff" />
+                        </View>
+
+                        <Text style={styles.title}>Surah</Text>
+                    </TouchableOpacity>
+
+
+                    <TouchableOpacity
+                        activeOpacity={0.85}
+                        style={styles.card}
+                        onPress={() => navigation.navigate('Juz')}
+                    >
+                        <View style={styles.iconContainer}>
+                            <Icon name="library-outline" size={12} color="#fff" />
+                        </View>
+                        <Text style={styles.title}>Juzz</Text>
+                    </TouchableOpacity>
+
+
+
+
+
+                </View>
+            </ScrollView>
+        </SafeAreaView >
+    )
+}

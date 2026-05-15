@@ -40,7 +40,7 @@ export default function ProfileScreen() {
         { key: 1, iconName: 'person-outline', subtitle: 'Personal Info', Path: 'PersonalInfo' },
     ];
     const GuardianRow = [
-        { key: 1, iconName: 'people-outline', subtitle: 'Children', Path: 'ChildrenAccounts' },
+        { key: 1, iconName: 'people-outline', subtitle: 'Children', Path: 'GuardianDashboard' },
     ];
 
     useEffect(() => {
@@ -139,18 +139,17 @@ export default function ProfileScreen() {
                             isLast={index === RowList.length - 1}
                         />
                     ))}
-                    {
-                        user?.userType === 'Guardian' &&
-                        GuardianRow.map((r, index) => (
-                            <Row
-                                key={r.key}
-                                iconName={r.iconName}
-                                subtitle={r.subtitle}
-                                Path={r.Path}
-                                navigation={navigation}
-                                isLast={index === RowList.length - 1}
-                            />
-                        ))}
+
+                    {user?.userType === 'Guardian' && GuardianRow.map((r, index) => (
+                        <Row
+                            key={r.key}
+                            iconName={r.iconName}
+                            subtitle={r.subtitle}
+                            Path={r.Path}
+                            navigation={navigation}
+                            isLast={index === RowList.length - 1}
+                        />
+                    ))}
                 </View>
 
                 {/* Optional: App Info Card */}

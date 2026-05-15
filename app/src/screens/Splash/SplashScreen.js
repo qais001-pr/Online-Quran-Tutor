@@ -4,7 +4,7 @@ import {
     Image,
     TouchableOpacity,
     Text,
-    ActivityIndicator,
+    // ActivityIndicator,
     Modal,
     StatusBar
 } from 'react-native';

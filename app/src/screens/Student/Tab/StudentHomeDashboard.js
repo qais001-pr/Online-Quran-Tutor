@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react-native/no-inline-styles */
 import { View, Text, TouchableOpacity, Image, Pressable, ScrollView, RefreshControl } from 'react-native'
 import React, { useCallback, useEffect, useState } from 'react'
@@ -8,13 +9,21 @@ import { style as styles } from '../../../styles/Student/Tab/StudentHomeDashboar
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Base_URL, Image_URL } from '../../../../IpConfig';
 import Colors from '../../../theme/Colors';
+import { useSocket } from '../../../context/Socket';
 const Header = ({ headerdata }) => {
     const navigation = useNavigation()
     const { user } = useAuth()
-    // console.log(headerdata);
+    const { ActiveUser } = useSocket()
+    const [onlineStatus, setOnlineStatus] = useState(false);
+    useEffect(() => {
+        if (ActiveUser) {
+            const check = ActiveUser.some(a => a.userID === user?.userID);
+            if (check)
+                setOnlineStatus(true);
+        }
+    }, [ActiveUser, user?.userID])
     return (
         <SafeAreaView style={styles.headerContainer}>
-
             {/* Profile Section */}
             <View style={styles.profileSection}>
                 <Pressable onPress={() => navigation.navigate('Profile')}>
@@ -22,6 +31,10 @@ const Header = ({ headerdata }) => {
                         source={{ uri: `${Image_URL}${user?.profile}` }}
                         style={styles.profileImage}
                     />
+                    {/* <View style={{
+                        borderRadius: 100, backgroundColor: 'green',
+                        position: 'absolute', borderWidth: 10, borderColor: onlineStatus ? '#06f021' : '#dc1515'
+                    }}></View> */}
                 </Pressable>
 
                 <View style={styles.profileInfo}>
@@ -180,12 +193,12 @@ export default function StudentHomeDashboard() {
                         {/* Student Info */}
                         <View style={styles.row}>
                             <Image
-                                source={{ uri: Image_URL + (upcoming?.studentProfile || '') }}
+                                source={{ uri: Image_URL + (upcoming?.tutorProfile || '') }}
                                 style={styles.avatar}
                             />
 
                             <View style={{ flex: 1 }}>
-                                <Text style={styles.name}>{upcoming?.studentName}</Text>
+                                <Text style={styles.name}>{upcoming?.tutorName}</Text>
                                 <Text style={styles.sub}>{upcoming?.subject}</Text>
                             </View>
                         </View>

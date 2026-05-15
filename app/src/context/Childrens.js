@@ -19,15 +19,15 @@ export const ChildrenProvider = ({ children }) => {
     const setChildData = (data) => {
         setChild(data)
     }
-    useEffect(() => {
-        if (childrenList?.length > 0) {
-            setSelectedChildID(childrenList[0].childrenID)
-            setChildData(childrenList[0])
-        }
-    }, [childrenList])
+    // useEffect(() => {
+    //     if (childrenList?.length > 0) {
+    //         setSelectedChildID(childrenList[0].childrenID)
+    //         setChildData(childrenList[0])
+    //     }
+    // }, [childrenList])
     let fetchChildrens = useCallback(async (setLoading) => {
         try {
-            setLoading(true)
+            // setLoading(true)
             const response = await fetch(Base_URL + `Guardian/getChildren?guardianId=${user?.userID}`)
             if (response.ok) {
                 const result = await response.json()
@@ -36,7 +36,7 @@ export const ChildrenProvider = ({ children }) => {
         } catch (error) {
             console.log(error)
         } finally {
-            setLoading(false)
+            // setLoading(false)
         }
     }, [user?.userID])
     return (

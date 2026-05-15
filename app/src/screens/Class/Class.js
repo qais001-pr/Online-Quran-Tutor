@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable no-shadow */
 /* eslint-disable react-native/no-inline-styles */
 import {
@@ -111,23 +112,23 @@ export default function Class({ navigation, route }) {
     }, [ClassID, Peer, Socket]);
 
 
-    // useEffect(() => {
-    //     if (!Socket.connected) {
-    //         Socket.connect();
-    //     }
+    useEffect(() => {
+        if (!Socket.connected) {
+            Socket.connect();
+        }
 
-    //     // Socket.emit('join-room', ClassID);
+        Socket.emit('join-room', ClassID);
 
-    //     const handleUserJoin = ({ socketid, roomID }) => {
-    //         console.log('User joined:', socketid, roomID);
-    //     };
+        const handleUserJoin = ({ socketid, roomID }) => {
+            console.log('User joined:', socketid, roomID);
+        };
 
-    //     Socket.on('user-join-successfully', handleUserJoin);
+        Socket.on('user-join-successfully', handleUserJoin);
 
-    //     return () => {
-    //         Socket.off('user-join-successfully', handleUserJoin);
-    //     };
-    // }, [ClassID, Socket]);
+        return () => {
+            Socket.off('user-join-successfully', handleUserJoin);
+        };
+    }, [ClassID, Socket]);
 
     let handleEndCallSuccess = useCallback(() => {
         inCallManager.stop();
@@ -413,8 +414,8 @@ export default function Class({ navigation, route }) {
     let highlightAyat = (index) => {
         if (user?.userType === 'Tutor') {
             console.log(index);
-            setSelectedAyatIndex(index)
             Socket.emit("onClick-Ayats", { index: index, room: ClassID, message: 'Tutor has selected the ayat' })
+            setSelectedAyatIndex(index)
         }
         return;
     }
@@ -428,9 +429,9 @@ export default function Class({ navigation, route }) {
                     <View style={[styles.header, { flexDirection: 'row', justifyContent: 'space-between' }]}>
                         <View>
                             <Text style={styles.surahName}>Surah: {data?.surahName || ''}</Text>
-                            <Text style={{ color: 'red', fontSize: 18, fontWeight: '700' }}>
+                            {/* <Text style={{ color: 'red', fontSize: 18, fontWeight: '700' }}>
                                 {String(minutes).padStart(2, '0')} : {String(seconds).padStart(2, '0')}
-                            </Text>
+                            </Text> */}
                         </View>
                     </View>
                     {/* Ayat List */}
@@ -448,7 +449,7 @@ export default function Class({ navigation, route }) {
                                     <Text
                                         style={[
                                             styles.ayatText,
-                                            { color: selectedAyatIndex === index ? 'red' : 'black' }
+                                            { color: selectedAyatIndex === item?.VerseID ? 'red' : 'black' }
                                         ]}
                                     >
                                         {item.AyahText}
@@ -496,14 +497,14 @@ export default function Class({ navigation, route }) {
             </View>
 
 
-            <View style={{
+            {/* <View style={{
                 backgroundColor: 'cyan',
                 width: 100, height: 100, position: 'absolute',
                 left: 20,
                 borderRadius: 10,
                 bottom: 150
             }}>
-                {/* <Text>Our Video</Text> */}
+                {/* <Text>Our Video</Text> 
                 {
                     localStream &&
                     <RTCView
@@ -515,21 +516,20 @@ export default function Class({ navigation, route }) {
                         streamURL={localStream.toURL()}
                     />
                 }
-            </View>
+            </View> */}
 
             <View style={{
                 // backgroundColor: 'cyan',
-                width: 100, height: 100, position: 'absolute',
-                left: 110,
+                width: 120, height: 120, position: 'absolute',
+                left: 10,
                 borderRadius: 10,
-                bottom: 150
+                bottom: 130
             }}>
-                {/* <Text>Our Video</Text> */}
                 {
                     remoteStream &&
                     <RTCView
                         style={{
-                            width: 100, height: 100
+                            width: 120, height: 120
                         }}
                         mirror
                         objectFit="cover"

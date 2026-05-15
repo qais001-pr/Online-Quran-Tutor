@@ -125,7 +125,7 @@ export default function History() {
                     <Text style={styles.subtitle}>Found {filteredList.length} sessions</Text>
                 </View>
 
-                <View style={styles.filterControls}>
+                {/* <View style={styles.filterControls}>
                     <TouchableOpacity style={styles.datePickerBtn} onPress={() => setOpen(true)}>
                         <Icon name="calendar" size={18} color="#37905f" />
                         <Text style={styles.datePickerLabel}>
@@ -144,7 +144,7 @@ export default function History() {
                         value={status}
                         onChange={item => setStatus(item.value)}
                     />
-                </View>
+                </View> */}
             </View>
 
             <FlatList

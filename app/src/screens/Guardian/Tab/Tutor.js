@@ -12,6 +12,7 @@ import {
     Platform,
     ToastAndroid, RefreshControl
 } from 'react-native';
+import ChildHeader from '../../../components/ChildHeader';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Portal, Provider } from 'react-native-paper';
 import { Base_URL, Image_URL } from '../../../../IpConfig';
@@ -20,9 +21,6 @@ import { useFocusEffect, } from '@react-navigation/native';
 import { styles } from '../../../styles/Student/Tab/TutorStyle';
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useChildrens } from '../../../context/Childrens';
-import ChildrenHeader from '../../../components/ChildrenHeader';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
 export default function Tutor({ navigation }) {
     const { selectedChildID, child } = useChildrens();
     const [loading, setLoading] = useState(false);
@@ -190,10 +188,10 @@ export default function Tutor({ navigation }) {
     // UI
     return (
         <Provider>
-            <SafeAreaView style={styles.safeAreaView}>
+            <View style={styles.safeAreaView}>
 
                 {/* Children Header */}
-                <ChildrenHeader />
+                <ChildHeader />
                 {/* LIST */}
                 <FlatList
                     data={dataList}
@@ -227,7 +225,7 @@ export default function Tutor({ navigation }) {
                     </Modal>
                 </Portal>
 
-            </SafeAreaView>
+            </View>
             <Portal>
                 <Modal
                     transparent={true}

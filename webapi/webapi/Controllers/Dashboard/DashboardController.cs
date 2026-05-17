@@ -57,10 +57,10 @@ namespace webapi.Controllers.Dashboard
             DateTime MonthInUserZone = todayInUserZone.AddMonths(1);
             var todaysClasses = (from c in TutorClasses
                                  where c.Status.ToLower() != "completed"
-                                 //where c.ClassDate.Date == todayInUserZone
-                                 //let classEndUtc = c.ClassDate.Date.Add(c.Slot.endTime)
-                                 //let classEndInUserZone = TimeZoneInfo.ConvertTimeFromUtc(classEndUtc, userTimeZone)
-                                 //where classEndInUserZone >= nowInUserZone
+                                 where c.ClassDate.Date == todayInUserZone
+                                 let classEndUtc = c.ClassDate.Date.Add(c.Slot.endTime)
+                                 let classEndInUserZone = TimeZoneInfo.ConvertTimeFromUtc(classEndUtc, userTimeZone)
+                                 where classEndInUserZone >= nowInUserZone
                                  orderby c.Slot.startTime
                                  select new
                                  {

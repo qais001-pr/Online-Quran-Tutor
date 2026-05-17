@@ -14,9 +14,18 @@ namespace webapi.Controllers.Progresses
         private DateTime GetClassDate(DateTime startDate, int weekIndex, int dayId)
         {
             int dayOffset = dayId - 1;
+            if (weekIndex == 0) // For the first week, calculate the date based on the current week
+            {
+                return startDate
+                    .AddDays(dayOffset); // Start classes from the current week
+            }
+            if (dayOffset <= 0) // If the day offset is 0 or negative, it means the class should be scheduled in the next week
+            {
+                return startDate.AddDays(dayOffset + 7); // If the day offset is 0 or negative, it means the class should be scheduled in the next week
+            }
             return startDate
-                .AddDays(weekIndex * 7)
-                .AddDays(dayOffset + 7);
+                .AddDays(weekIndex * 7);
+            //.AddDays(dayOffset + 7); Uncomment this line if you want to start classes from the next week instead of the current week
         }
         private DateTime GetWeekStart(DateTime date)
         {

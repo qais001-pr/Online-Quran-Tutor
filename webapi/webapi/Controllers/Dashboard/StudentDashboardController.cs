@@ -37,7 +37,7 @@ namespace webapi.Controllers.Dashboard
                 {
                     userTimeZone = TimeZoneInfo.Utc;
                 }
-                var TutorClasses = _context.TimeTables.Where(c => c.Enrollment.User.userID == studentId).ToList();
+                var TutorClasses = _context.TimeTables.Where(c => c.Enrollment.User.userID == studentId && c.Status.ToLower() != "completed").ToList();
 
                 DateTime Now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, userTimeZone);
                 DateTime Today = Now.Date;

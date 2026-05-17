@@ -32,6 +32,12 @@ namespace webapi.Controllers.Request
                 return Request.CreateResponse(HttpStatusCode.Conflict,
                 new { success = false, message = "Request Already Sent to this Tutor" });
             }
+            var checkEnrollment = _context.Enrollments.Where(e => e.User.userID == data.studentId && e.User1.userID == data.tutorId && e.surah.Id == data.surahID && e.enrollment_status == "Active").FirstOrDefault();
+            if (checkEnrollment != null)
+            {
+                return Request.CreateResponse(HttpStatusCode.Conflict,
+                new { success = false, message = "Already Enrolled with this Tutor for this Surah" });
+            }
             if (user == null || user.Subject == null)
             {
                 return Request.CreateResponse(HttpStatusCode.BadRequest,

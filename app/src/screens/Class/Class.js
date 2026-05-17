@@ -1,3 +1,4 @@
+// /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-shadow */
 /* eslint-disable react-native/no-inline-styles */
@@ -15,12 +16,13 @@ import { Base_URL } from '../../../IpConfig';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useSocket } from '../../context/Socket';
 import { usePeer } from '../../context/Peer';
-import { mediaDevices, RTCView } from 'react-native-webrtc';
+import { mediaDevices, RTCView, MediaStream } from 'react-native-webrtc';
 import { styles } from '../../styles/Class/ClassStyle';
 import inCallManager from 'react-native-incall-manager';
 import StudentReviewModal from '../../components/StudentReviewModal'
 import TutorFeedBack from '../../components/TutorFeedback'
 import { useAuth } from '../../context/auth';
+// import AudioRecorderPlayer from 'react-native-audio-recorder-player'
 export default function Class({ navigation, route }) {
     const { user } = useAuth()
     const [localStream, setlocalStream] = useState(null)
@@ -67,25 +69,25 @@ export default function Class({ navigation, route }) {
         }
     }, [user?.timezone]);
 
-    useEffect(() => {
-        const timer = setInterval(() => {
-            const now = new Date();
-            const currentTotalMinutes = (now.getHours() * 60) + now.getMinutes();
-            const endTimeString = convertUtcToUserTime(endTime);
-            const [endHour, endMinute] = endTimeString.split(':').map(Number);
-            const endTotalMinutes = (endHour * 60) + endMinute;
+    // useEffect(() => {
+    //     const timer = setInterval(() => {
+    //         const now = new Date();
+    //         const currentTotalMinutes = (now.getHours() * 60) + now.getMinutes();
+    //         const endTimeString = convertUtcToUserTime(endTime);
+    //         const [endHour, endMinute] = endTimeString.split(':').map(Number);
+    //         const endTotalMinutes = (endHour * 60) + endMinute;
 
-            console.log(`Current: ${currentTotalMinutes} mins, End: ${endTotalMinutes} mins`);
+    //         console.log(`Current: ${currentTotalMinutes} mins, End: ${endTotalMinutes} mins`);
 
-            if (currentTotalMinutes >= endTotalMinutes) {
-                console.log('24h Limit Reached. Ending Call.');
-                clearInterval(timer);
-                endCall();
-            }
-        }, 30000);
+    //         if (currentTotalMinutes >= endTotalMinutes) {
+    //             console.log('24h Limit Reached. Ending Call.');
+    //             clearInterval(timer);
+    //             endCall();
+    //         }
+    //     }, 30000);
 
-        return () => clearInterval(timer);
-    }, [endTime, endCall, convertUtcToUserTime]);
+    //     return () => clearInterval(timer);
+    // }, [endTime, endCall, convertUtcToUserTime]);
     const {
         Peer,
         InitializePeer, closePeerConnection,
@@ -261,8 +263,10 @@ export default function Class({ navigation, route }) {
             const { assignmentText,
                 correction,
                 startIndex,
-                endIndex, } = data;
-            console.log('Assignment', assignmentText)
+                endIndex,
+                badge,
+                score } = data;
+            console.log('data', data)
             const response = await fetch(Base_URL + `Progress/CompleteClass`, {
                 method: 'POST',
                 body: JSON.stringify({
@@ -270,10 +274,13 @@ export default function Class({ navigation, route }) {
                     corrections: correction,
                     notes: assignmentText,
                     startAyat: startIndex,
-                    endAyat: endIndex
+                    endAyat: endIndex,
+                    badge: badge,
+                    score: score
                 }),
                 headers: { "content-type": "application/json" }
             })
+            console.log(response)
             if (response.ok) {
                 const result = await response.json()
                 console.log(result);
@@ -419,6 +426,112 @@ export default function Class({ navigation, route }) {
         }
         return;
     }
+
+    // code for the recording setup 
+
+    // // const recorder = new AudioRecorderPlayer()
+    // const [slots, setSlots] = useState([])
+    // const [startedAt] = useState(Date.now())
+    // const generateSlots = () => {
+    //     const slots = []
+
+    //     while (slots.length < 2) {
+    //         const t = Math.floor(Math.random() * 240) // 59 min
+
+    //         if (!slots.some(x => Math.abs(x - t) < 60)) {
+    //             slots.push(t)
+    //         }
+    //     }
+
+    //     return slots.sort((a, b) => a - b)
+    // }
+    // useEffect(() => {
+    //     setSlots(generateSlots())
+    // }, [])
+
+    // useEffect(() => {
+
+    //     const interval = setInterval(() => {
+
+    //         const now = Date.now()
+    //         const elapsed = Math.floor((now - startedAt) / 1000)
+
+    //         slots.forEach(slot => {
+
+    //             if (elapsed === slot) {
+    //                 startAutoRecording(slot)
+    //             }
+
+    //         })
+
+    //     }, 1000)
+
+    //     return () => clearInterval(interval)
+
+    // }, [slots, startAutoRecording, startedAt])
+
+    // const startAutoRecording = useCallback(async (slotId) => {
+
+    //     const filePath =
+    //         `/sdcard/class_${ClassID}_${slotId}.mp4`
+
+    //     await recorder.startRecorder(filePath)
+
+    //     setTimeout(async () => {
+
+    //         const result = await recorder.stopRecorder()
+
+    //         await uploadFile(result, slotId)
+
+    //     }, 60000)
+
+    // }, [ClassID, recorder, uploadFile])
+
+    // const uploadFile = useCallback(async (filePath, slotId) => {
+
+    //     const formData = new FormData()
+
+    //     formData.append('file', {
+    //         uri: 'file://' + filePath,
+    //         type: 'audio/mp4',
+    //         name: `record_${slotId}.mp4`
+    //     })
+
+    //     formData.append('classId', ClassID)
+    //     formData.append('slotId', slotId)
+
+    //     const res = await fetch(`${Base_URL}/Recording/upload-recording`, {
+    //         method: 'POST',
+    //         body: formData,
+    //         headers: {
+    //             'Content-Type': 'multipart/form-data'
+    //         }
+    //     })
+
+    //     const json = await res.json()
+    // }, [ClassID])
+
+
+    const [holdStatus, setholdStatus] = useState()
+    let holdClass = () => {
+        setholdStatus(!holdStatus)
+        Socket.emit('hold-class', { message: 'student wants to hold class', check: holdStatus, room: ClassID })
+    }
+
+    let HoldTheClass = useCallback(async (data) => {
+        const { check, room } = data;
+        console.log(check, room);
+    }, [])
+    useEffect(() => {
+        Socket.on('incoming-call', HoldTheClass);
+        return () => {
+            Socket.off('incoming-call', HoldTheClass);
+        };
+    }, [Socket, HoldTheClass]);
+
+    if (holdStatus && user?.userType === 'Tutor') {
+        return (<View><Text>Student Had Hold the class</Text></View>)
+    }
     return (
         <View style={styles.container}>
             <StatusBar barStyle="dark-content" />
@@ -486,7 +599,15 @@ export default function Class({ navigation, route }) {
                 >
                     <Icon name={micOn ? 'mic' : 'mic-off'} size={28} color="#fff" />
                 </TouchableOpacity>
-
+                {
+                    (user?.userType === 'Student' || user?.userType === 'Child') &&
+                    < TouchableOpacity
+                        style={[styles.button]}
+                        onPress={holdClass}
+                    >
+                        <Icon name="pause-circle" size={28} color="#fff" />
+                    </TouchableOpacity>
+                }
                 {/* Call Button */}
                 <TouchableOpacity
                     style={[styles.button, styles.callButton, styles.callInactive]}
@@ -494,6 +615,7 @@ export default function Class({ navigation, route }) {
                 >
                     <Icon name="call" size={28} color="#fff" />
                 </TouchableOpacity>
+
             </View>
 
 
@@ -541,7 +663,7 @@ export default function Class({ navigation, route }) {
             {
                 (showmodal && user?.userType === 'Tutor') ? (
                     <TutorFeedBack
-                        onSubmit={handleSubmitTutorFeedBack}
+                        onSubmit={handleSubmitTutorFeedBack} 
                         visible={showmodal}
                         onClose={() => setshowmodal(false)}
                         lessonData={data?.lessondata}
@@ -555,6 +677,6 @@ export default function Class({ navigation, route }) {
                 )
             }
 
-        </View>
+        </View >
     );
 }

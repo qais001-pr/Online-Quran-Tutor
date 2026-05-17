@@ -7,5 +7,7 @@
         public string notes { get; set; }
         public int startAyat { get; set; }
         public int endAyat { get; set; }
+        public int score { get; set; }
+        public string badge { get; set; }
     }
 }

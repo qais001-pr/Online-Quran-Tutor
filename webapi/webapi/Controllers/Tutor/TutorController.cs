@@ -266,6 +266,12 @@ namespace webapi.Controllers.Tutor
                     Rating = (from r in _context.Reviews
                               where r.TimeTable.TimeTableid == tt.TimeTableid
                               select r.Rating).FirstOrDefault(),
+                    badge = (from r in _context.Progresses
+                             where r.TimeTable.TimeTableid == tt.TimeTableid
+                             select r.badge).FirstOrDefault(),
+                    Score = (from r in _context.Progresses
+                             where r.TimeTable.TimeTableid == tt.TimeTableid
+                             select r.score).FirstOrDefault(),
                 })
                 .ToList();
             return Request.CreateResponse(HttpStatusCode.OK, new

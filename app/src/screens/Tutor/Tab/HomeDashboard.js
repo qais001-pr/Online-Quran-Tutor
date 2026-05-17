@@ -9,7 +9,7 @@ import { Base_URL, Image_URL } from '../../../../IpConfig';
 import { useFocusEffect } from '@react-navigation/native';
 import { externalStyles } from '../../../styles/Tutor/Tab/HomeDashboard'
 import { useNavigation } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/Ionicons'
+import Icon from 'react-native-vector-icons/Ionicons';
 export default function HomeDashboard() {
     const { user } = useAuth();
     const [dashboardData, setDashboardData] = useState(null);
@@ -133,11 +133,11 @@ export default function HomeDashboard() {
                             </Text>
 
                             {/* Time Info */}
-                            <View style={[externalStyles.timeContainer, { flexDirection: 'row', marginTop: 4 }]}>
+                            {/* <View style={[externalStyles.timeContainer, { flexDirection: 'row', marginTop: 4 }]}>
                                 <Text style={externalStyles.whiteText}>
                                     {convertUtcToUserTime(item?.startTime)} - {convertUtcToUserTime(item?.endTime)}
                                 </Text>
-                            </View>
+                            </View> */}
 
                             {/* Date */}
                             <Text style={[externalStyles.whiteText, { marginTop: 2 }]}>
@@ -149,15 +149,15 @@ export default function HomeDashboard() {
                                 <Text style={externalStyles.statusText}>{item?.status}</Text>
                             </View>
                             <TouchableOpacity
-                                disabled={Check}
+                                // disabled={Check}
                                 onPress={() => navigation.navigate('Class', { classID: item?.classId, startTime: item?.startTime, endTime: item?.endTime })}
 
-                                style={Check ? externalStyles.joinBtnDisabled
+                                style={!Check ? externalStyles.joinBtnDisabled
                                     : externalStyles.joinBtn}
                             >
                                 <Icon name="videocam-outline" size={16} color="#fff" />
                                 <Text style={externalStyles.joinText}>
-                                    {Check ?
+                                    {!Check ?
                                         'Scheduled' : 'Join'
                                     }
                                 </Text>

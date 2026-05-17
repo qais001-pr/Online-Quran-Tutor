@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, { useState } from 'react';
 import {
     View,
@@ -9,21 +10,27 @@ import {
     KeyboardAvoidingView,
     Platform,
     ToastAndroid,
-    ScrollView
+    ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Dropdown } from 'react-native-element-dropdown';
 
 export default function TutorFeedBack({ visible, onClose, onSubmit, lessonData }) {
     const [assignmentText, setAssignmentText] = useState('');
-    const [correction, setCorrection] = useState('');
+    const [correction, setCorrection] = useState('No Mistakes');
     const [startIndex, setStartIndex] = useState(null);
     const [endIndex, setEndIndex] = useState(null);
+    const [badge, setBadge] = useState('Amazing');
+    const [score, setScore] = useState(4);
 
     const handleSubmit = () => {
         if (!correction) {
             ToastAndroid.show('Correction is required', ToastAndroid.SHORT);
             return;
+        }
+        if (endIndex < startIndex) {
+            ToastAndroid.show('', 4000)
+            return
         }
 
         onSubmit({
@@ -31,6 +38,8 @@ export default function TutorFeedBack({ visible, onClose, onSubmit, lessonData }
             correction,
             startIndex,
             endIndex,
+            badge,
+            score
         });
 
         setAssignmentText('');
@@ -77,10 +86,9 @@ export default function TutorFeedBack({ visible, onClose, onSubmit, lessonData }
                                 onChangeText={setAssignmentText}
                             />
                         </View>
-
                         {/* Correction */}
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Correction *</Text>
+                        {/* <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Correction</Text>
                             <TextInput
                                 style={styles.input}
                                 placeholder="Enter mistakes count (e.g. 10)"
@@ -88,6 +96,72 @@ export default function TutorFeedBack({ visible, onClose, onSubmit, lessonData }
                                 value={correction}
                                 onChangeText={setCorrection}
                             />
+                        </View> */}
+                        <View style={{ padding: 5, }}>
+
+                            <Text style={{ fontSize: 15, fontWeight: '800' }}>Select Badge</Text>
+
+                        </View>
+                        <View style={{ flexDirection: 'row', margin: 3, justifyContent: 'space-between' }}>
+
+                            <TouchableOpacity
+                                onPress={() => {
+                                    setScore(4)
+                                    setBadge('Amazing')
+                                    setCorrection('No Mistakes')
+                                }}
+                                style={{
+                                    backgroundColor:
+                                        badge === 'Amazing' ? '#c2b7b7' : '#088a53', padding: 9, borderRadius: 3
+                                }}
+                            >
+                                <Text style={{ fontSize: 13, color: 'white' }}>Amazing</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                onPress={() => {
+                                    setScore(3)
+                                    setBadge('Good')
+                                    setCorrection('Mistakes Below 5')
+                                }}
+                                style={{
+                                    backgroundColor:
+                                        badge === 'Good' ? '#c2b7b7' : '#088a53', padding: 9, borderRadius: 3
+                                }}
+                            >
+                                <Text style={{ fontSize: 13, color: 'white' }}>Good</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                onPress={() => {
+                                    setScore(2)
+                                    setBadge('Satisfactory')
+                                    setCorrection('Mistakes Between 5 and 10')
+                                }}
+                                style={{
+                                    backgroundColor:
+                                        badge === 'Satisfactory' ? '#c2b7b7' : '#088a53', padding: 9, borderRadius: 3
+                                }}
+                            >
+                                <Text style={{ fontSize: 13, color: 'white' }}>Satisfactory</Text>
+                            </TouchableOpacity>
+
+
+                            <TouchableOpacity
+                                onPress={() => {
+                                    setScore(1)
+                                    setBadge('Need Improvement')
+                                    setCorrection('Mistakes Above 10')
+                                }}
+                                style={{
+                                    backgroundColor:
+                                        badge === 'Need Improvement' ? '#c2b7b7' : '#088a53', padding: 9, borderRadius: 3
+                                }}
+                            >
+                                <Text style={{ fontSize: 13, color: 'white' }}>Improvement</Text>
+                            </TouchableOpacity>
+
+
                         </View>
 
                         {/* Ayat Range */}
@@ -137,7 +211,7 @@ export default function TutorFeedBack({ visible, onClose, onSubmit, lessonData }
                     </ScrollView>
                 </KeyboardAvoidingView>
             </View>
-        </Modal>
+        </Modal >
     );
 }
 

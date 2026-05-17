@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable no-shadow */
 /* eslint-disable react-native/no-inline-styles */
 import { FlatList, Image, View, RefreshControl, TouchableOpacity } from 'react-native';
@@ -20,6 +21,8 @@ export default function History() {
     const [open, setOpen] = useState(false);
     const [date, setDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(false);
+    const [averageScore, setAverageScore] = useState('');
+
 
     const statusList = [
         { label: 'All Statuses', value: '' },
@@ -33,6 +36,7 @@ export default function History() {
             const response = await fetch(`${Base_URL}Students/getHistoryData?userID=${child?.childrenID}`);
             if (response.ok) {
                 const result = await response.json();
+                setAverageScore(result?.avaerageScore);
                 setData(result?.data || []);
             }
         } catch (error) {
@@ -87,12 +91,12 @@ export default function History() {
                             source={{ uri: Image_URL + (item?.TutorImage || '') }}
                             style={styles.avatar}
                         />
-                        <View>
+                        {/* <View>
                             <Text style={styles.name}>{item?.TutorName || 'Unknown'}</Text>
                             <Text style={styles.sub}>
                                 {item?.ClassDate?.split('T')[0]} • {convertUtcToUserTime(item?.StartTime)} - {convertUtcToUserTime(item?.EndTime)}
                             </Text>
-                        </View>
+                        </View> */}
                     </View>
 
                     <Text style={[styles.status, styles[item?.Status?.toLowerCase()] || styles.defaultStatus]}>
@@ -102,7 +106,10 @@ export default function History() {
 
                 {/* Body */}
                 <Text style={styles.text}>
-                    Subject : {item?.Subject} • {item?.DayName} •  Ayat: {item?.startAyat ?? 0}-{item?.endAyat ?? 0}
+                    Subject : {item?.Subject} • Badge: {item?.badge}
+                </Text>
+                <Text style={styles.text}>
+                    Score : {item?.Score} • {item?.DayName} •  Ayat: {item?.startAyat ?? 0}-{item?.endAyat ?? 0}
                 </Text>
 
                 {item?.Status === 'completed' && (
@@ -146,6 +153,9 @@ export default function History() {
                         onChange={item => setStatus(item.value)}
                     />
                 </View> */}
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 10 }}>
+                <Text style={[styles.text, { fontSize: 16 }]}>Average Score: {averageScore}</Text>
             </View>
 
             <FlatList

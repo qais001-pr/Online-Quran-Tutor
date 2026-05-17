@@ -221,7 +221,7 @@ export default function StudentHomeDashboard() {
 
                         {/* Button */}
                         <TouchableOpacity
-                            disabled={checkDateAndTime({ i: upcoming })}
+                            // disabled={checkDateAndTime({ i: upcoming })}
                             onPress={() => navigation.navigate('Class', { classID: upcoming?.classId })}
                             style={
                                 checkDateAndTime({ i: upcoming })

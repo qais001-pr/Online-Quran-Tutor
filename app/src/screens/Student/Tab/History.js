@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable no-shadow */
 /* eslint-disable react-native/no-inline-styles */
 import { FlatList, Image, View, RefreshControl, TouchableOpacity } from 'react-native';
@@ -19,6 +20,8 @@ export default function History() {
     const [open, setOpen] = useState(false);
     const [date, setDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(false);
+    const [averageScore, setAverageScore] = useState('');
+
 
     const statusList = [
         { label: 'All Statuses', value: '' },
@@ -32,6 +35,7 @@ export default function History() {
             const response = await fetch(`${Base_URL}Students/getHistoryData?userID=${user?.userID}`);
             if (response.ok) {
                 const result = await response.json();
+                setAverageScore(result?.avaerageScore);
                 setData(result?.data || []);
             }
         } catch (error) {
@@ -101,7 +105,10 @@ export default function History() {
 
                 {/* Body */}
                 <Text style={styles.text}>
-                    Subject : {item?.Subject} • {item?.DayName} •  Ayat: {item?.startAyat ?? 0}-{item?.endAyat ?? 0}
+                    Subject : {item?.Subject} • Badge: {item?.badge}
+                </Text>
+                <Text style={styles.text}>
+                    Score : {item?.Score} • {item?.DayName} •  Ayat: {item?.startAyat ?? 0}-{item?.endAyat ?? 0}
                 </Text>
 
                 {item?.Status === 'completed' && (
@@ -146,7 +153,9 @@ export default function History() {
                     />
                 </View> */}
             </View>
-
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={[styles.text, { fontSize: 16 }]}>Average Score: {averageScore}</Text>
+            </View>
             <FlatList
                 contentContainerStyle={{ paddingBottom: 100 }}
                 data={filteredList}
@@ -169,6 +178,6 @@ export default function History() {
                 onConfirm={(date) => { setOpen(false); setDate(date); setSelectedDate(true); }}
                 onCancel={() => setOpen(false)}
             />
-        </View>
+        </View >
     );
 }

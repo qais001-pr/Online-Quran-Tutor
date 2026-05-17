@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react-native/no-inline-styles */
 import { FlatList, Image, View, RefreshControl, TouchableOpacity, StatusBar } from 'react-native'
 import React, { useCallback, useState, useMemo } from 'react'
@@ -95,22 +96,24 @@ export default function History() {
                             source={{ uri: Image_URL + (item?.StudentImage || '') }}
                             style={styles.avatar}
                         />
-                        <View>
+                        {/* <View>
                             <Text style={styles.name}>{item?.StudentName || 'Unknown'}</Text>
                             <Text style={styles.sub}>
                                 {item?.ClassDate?.split('T')[0]} • {convertUtcToUserTime(item?.StartTime)} - {convertUtcToUserTime(item?.EndTime)}
                             </Text>
-                        </View>
+                        </View> */}
                     </View>
 
                     <Text style={[styles.status, styles[item?.Status?.toLowerCase()] || styles.defaultStatus]}>
                         {item?.Status?.toUpperCase()}
                     </Text>
                 </View>
-
                 {/* Body */}
                 <Text style={styles.text}>
-                    Subject : {item?.Subject} • {item?.DayName} •  Ayat: {item?.startAyat ?? 0}-{item?.endAyat ?? 0}
+                    Subject : {item?.Subject} • Badge: {item?.badge}
+                </Text>
+                <Text style={styles.text}>
+                    Score : {item?.Score} •  Ayat: {item?.startAyat ?? 0}-{item?.endAyat ?? 0}
                 </Text>
 
                 {item?.Status === 'completed' && (

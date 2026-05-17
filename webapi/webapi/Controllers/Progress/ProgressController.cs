@@ -55,6 +55,8 @@ namespace webapi.Controllers.Progresses
                     endAyat = progress.endAyat,
                     startAyat = progress.startAyat,
                     notes = progress.notes,
+                    badge = progress.badge,
+                    score = progress.score,
                 };
                 _context.Progresses.Add(newProgress);
                 _context.SaveChanges();

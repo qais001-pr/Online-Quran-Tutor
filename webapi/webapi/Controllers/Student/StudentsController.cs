@@ -280,9 +280,17 @@ namespace webapi.Controllers.Student
         public HttpResponseMessage getHistoryData(int userID)
         {
             var currentMonth = DateTime.Now.Month;
+
+            var Scores = (from e in _context.Enrollments
+                                join t in _context.TimeTables on e.enrollmentid equals t.Enrollment.enrollmentid
+                                join p in _context.Progresses on t.TimeTableid equals p.TimeTable.TimeTableid
+                                where e.User.userID == userID && t.Status == "completed"
+                                select p.score).ToList();
+            var average = Scores.Average();
+
             var result = (
                 from tt in _context.TimeTables
-                where tt.Enrollment.User.userID == userID  && tt.Status == "completed" && tt.ClassDate.Month == currentMonth
+                where tt.Enrollment.User.userID == userID && tt.Status == "completed" && tt.ClassDate.Month == currentMonth
                 select new
                 {
                     ClassID = tt.TimeTableid,
@@ -312,8 +320,14 @@ namespace webapi.Controllers.Student
                                        where r.TimeTable.TimeTableid == tt.TimeTableid
                                        select r.Comment).FirstOrDefault(),
                     Rating = (from r in _context.Reviews
-                              where r.TimeTable.TimeTableid == tt.TimeTableid 
+                              where r.TimeTable.TimeTableid == tt.TimeTableid
                               select r.Rating).FirstOrDefault(),
+                    badge = (from r in _context.Progresses
+                             where r.TimeTable.TimeTableid == tt.TimeTableid
+                             select r.badge).FirstOrDefault(),
+                    Score = (from r in _context.Progresses
+                             where r.TimeTable.TimeTableid == tt.TimeTableid
+                             select r.score).FirstOrDefault(),
                 })
                 .ToList();
             return Request.CreateResponse(HttpStatusCode.OK, new
@@ -321,6 +335,7 @@ namespace webapi.Controllers.Student
                 success = true,
                 message = "History data retrieved successfully.",
                 data = result,
+                avaerageScore = average,
                 totalClasses = result.Count(),
             });
         }

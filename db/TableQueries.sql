@@ -196,3 +196,12 @@ CREATE TABLE Reviews (
     CreatedAt DATETIME DEFAULT GETDATE(),
     CONSTRAINT FK_Reviews_TimeTable FOREIGN KEY (TimeTableID) REFERENCES TimeTable(TimeTableID)
 );
+
+
+
+CREATE TABLE Recordings (
+    Id INT IDENTITY PRIMARY KEY,
+    ClassId VARCHAR(MAX) NOT NULL,
+    SlotId INT NOT NULL,
+    FilePath VARCHAR(MAX) NOT NULL
+);

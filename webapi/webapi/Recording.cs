@@ -12,15 +12,11 @@ namespace webapi
     using System;
     using System.Collections.Generic;
     
-    public partial class Progress
+    public partial class Recording
     {
-        public int progressid { get; set; }
-        public int startAyat { get; set; }
-        public int endAyat { get; set; }
-        public string notes { get; set; }
-        public string badge { get; set; }
-        public Nullable<int> score { get; set; }
-    
-        public virtual TimeTable TimeTable { get; set; }
+        public int Id { get; set; }
+        public string ClassId { get; set; }
+        public int SlotId { get; set; }
+        public string FilePath { get; set; }
     }
 }

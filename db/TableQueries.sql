@@ -198,10 +198,38 @@ CREATE TABLE Reviews (
 );
 
 
+INSERT INTO Days (dayName) VALUES ('Monday'),('Tuesday'),('Wednesday'),('Thursday'),('Friday'),('Saturday'),('Sunday');
 
-CREATE TABLE Recordings (
-    Id INT IDENTITY PRIMARY KEY,
-    ClassId VARCHAR(MAX) NOT NULL,
-    SlotId INT NOT NULL,
-    FilePath VARCHAR(MAX) NOT NULL
-);
+
+
+INSERT INTO Slots (startTime, endTime) VALUES ('00:00:00', '01:00:00');
+INSERT INTO Slots (startTime, endTime) VALUES ('01:00:00', '02:00:00');
+INSERT INTO Slots (startTime, endTime) VALUES ('02:00:00', '03:00:00');
+INSERT INTO Slots (startTime, endTime) VALUES ('03:00:00', '04:00:00');
+INSERT INTO Slots (startTime, endTime) VALUES ('04:00:00', '05:00:00');
+INSERT INTO Slots (startTime, endTime) VALUES ('05:00:00', '06:00:00');
+INSERT INTO Slots (startTime, endTime) VALUES ('06:00:00', '07:00:00');
+INSERT INTO Slots (startTime, endTime) VALUES ('07:00:00', '08:00:00');
+INSERT INTO Slots (startTime, endTime) VALUES ('08:00:00', '09:00:00');
+INSERT INTO Slots (startTime, endTime) VALUES ('09:00:00', '10:00:00');
+INSERT INTO Slots (startTime, endTime) VALUES ('10:00:00', '11:00:00');
+INSERT INTO Slots (startTime, endTime) VALUES ('11:00:00', '12:00:00');
+INSERT INTO Slots (startTime, endTime) VALUES ('12:00:00', '13:00:00');
+INSERT INTO Slots (startTime, endTime) VALUES ('13:00:00', '14:00:00');
+INSERT INTO Slots (startTime, endTime) VALUES ('14:00:00', '15:00:00');
+INSERT INTO Slots (startTime, endTime) VALUES ('15:00:00', '16:00:00');
+INSERT INTO Slots (startTime, endTime) VALUES ('16:00:00', '17:00:00');
+INSERT INTO Slots (startTime, endTime) VALUES ('17:00:00', '18:00:00');
+INSERT INTO Slots (startTime, endTime) VALUES ('18:00:00', '19:00:00');
+INSERT INTO Slots (startTime, endTime) VALUES ('19:00:00', '20:00:00');
+INSERT INTO Slots (startTime, endTime) VALUES ('20:00:00', '21:00:00');
+INSERT INTO Slots (startTime, endTime) VALUES ('21:00:00', '22:00:00');
+INSERT INTO Slots (startTime, endTime) VALUES ('22:00:00', '23:00:00');
+INSERT INTO Slots (startTime, endTime) VALUES ('23:00:00', '23:59:59');
+
+
+
+
+INSERT INTO Subjects (subjectName) VALUES ('Nazra');
+INSERT INTO Subjects (subjectName) VALUES ('Tajweed');
+INSERT INTO Subjects (subjectName) VALUES ('Hifz');

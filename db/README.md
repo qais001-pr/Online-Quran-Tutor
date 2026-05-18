@@ -9,7 +9,6 @@ This project uses **Microsoft SQL Server** along with SQL scripts and CSV files 
 ```
 db/
 │
-├── QuranDB.bak / QuranDB (or MDF/LDF)
 ├── TableQueries.sql
 ├── stored-prodecure.sql
 ├── Trigger.sql

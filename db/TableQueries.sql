@@ -13,9 +13,19 @@ CREATE TABLE Days (
 CREATE TABLE Slots (
     slotID INT IDENTITY(1,1) PRIMARY KEY,
     startTime TIME NOT NULL,
-    endTime TIME NOT NULL
+    endTime TIME NOT NULL,
+    createdAt DATETIME NOT NULL DEFAULT GETDATE()
 );
 
+-- Juz
+
+-- Reviews
+CREATE TABLE Reviews (
+    Juz_ID INT IDENTITY(1,1) PRIMARY KEY,
+    Surah_ID INT NOT NULL,
+    Starting_Verse_ID INT NOT NULL,
+    Arabic_Start_Word NVARCHAR(MAX) NULL,
+);
 
 
 
@@ -84,18 +94,6 @@ foreign key (childID) references users(userid),
 foreign key (guardianID) references users(userid)
 )
 
-
-
--- Certificate
-CREATE TABLE Certificate (
-    certificateID INT IDENTITY(1,1) PRIMARY KEY,
-    title VARCHAR(200) NOT NULL,
-    issuedBy VARCHAR(200),
-    imagePath VARCHAR(MAX),
-    userid INT NOT NULL,
-    CONSTRAINT FK_Certificate_Tutor FOREIGN KEY (USERID) REFERENCES users(USERID)
-);
-
 -- TutorSlots
 CREATE TABLE TutorSlots (
     tutorSlotID INT IDENTITY(1,1) PRIMARY KEY,
@@ -137,7 +135,6 @@ CREATE TABLE StudentTutorRequests (
     TutorID INT NOT NULL,
     SubjectID INT NOT NULL,
     status VARCHAR(50) NOT NULL DEFAULT 'pending',
-    createdAt DATETIME DEFAULT GETDATE(),
     Surahid int not null,
     CONSTRAINT FK_Request_Student FOREIGN KEY (StudentID) REFERENCES users(userid),
     CONSTRAINT FK_Tutor_Request FOREIGN KEY (TutorID) REFERENCES users(userid),
@@ -184,6 +181,8 @@ CREATE TABLE Progress(
     endAyat int not null,
     timetableid int not null,
     notes VARCHAR(100) not null,
+    badge VARCHAR(50) NOT NULL,
+    score int NOT NULL,
     FOREIGN KEY (timetableid) references TimeTable(TimeTableid)
 )
 

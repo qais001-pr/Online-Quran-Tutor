@@ -69,7 +69,7 @@ CREATE TABLE [Users] (
     userID INT IDENTITY(1,1) PRIMARY KEY,
     name VARCHAR(200) NOT NULL,
     email VARCHAR(200) NOT NULL,
-    password VARCHAR(255) NULL,
+    password VARCHAR(255) NULL, 
     gender VARCHAR(20) NULL, 
     dateOfBirth DATE NULL,
     userType VARCHAR(50) NULL,
